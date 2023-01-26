@@ -1,0 +1,7 @@
+// prettier-ignore
+{
+  // The title of the document
+  title: "The Document \
+Title",
+  different: "From JSON5",
+}

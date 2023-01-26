@@ -1,0 +1,53 @@
+{
+  "name": "pdf-made-easy",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Matthew Espino",
+  "description": "A CLI application and library for developing and creating PDF documents.",
+  "keywords": [
+    "cli",
+    "json",
+    "yaml",
+    "template",
+    "liquid",
+    "html",
+    "puppeteer",
+    "pdf",
+    "document"
+  ],
+  "homepage": "https://github.com/mcecode/pdf-made-easy#readme",
+  "bugs": "https://github.com/mcecode/pdf-made-easy/issues",
+  "repository": "mcecode/pdf-made-easy",
+  "files": [
+    "./*.js",
+    "./*.d.ts",
+    "./CHANGELOG.md"
+  ],
+  "exports": "./index.js",
+  "types": "./index.d.ts",
+  "bin": {
+    "pme": "./cli.js"
+  },
+  "engines": {
+    "node": ">=16.19 <17 || >=18"
+  },
+  "scripts": {
+    "format": "prettier . -w",
+    "lint": "eslint . --cache --cache-location node_modules && prettier . -c",
+    "test": "sh ./test.sh"
+  },
+  "dependencies": {
+    "@parcel/watcher": "^2.1.0",
+    "find-up": "^6.3.0",
+    "json5": "^2.2.3",
+    "liquidjs": "^10.4.0",
+    "puppeteer": "^19.5.2",
+    "yaml": "^2.2.1",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "eslint-config-mcecode": "^4.0.0",
+    "prettier": "2.8.3"
+  }
+}
