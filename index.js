@@ -92,10 +92,7 @@ export async function getBuilder() {
   let isClosed = false;
 
   return {
-    async build(
-      { data, template, output, options, getTemplateRenderer },
-      rootDir = process.cwd()
-    ) {
+    async build({ data, template, output, options }, rootDir = process.cwd()) {
       if (isClosed) {
         return;
       }
@@ -112,7 +109,7 @@ export async function getBuilder() {
 
       const html = await renderHTML(
         absolutizePath(template, rootDir),
-        (getTemplateRenderer ?? getDefaultTemplateRenderer)(
+        (options?.getTemplateRenderer ?? getDefaultTemplateRenderer)(
           // TODO: Fix type error
           // @ts-expect-error
           options?.templateOptions

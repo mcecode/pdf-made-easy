@@ -63,7 +63,7 @@ npm install pdf-made-easy
 
 ### CLI
 
-- [ ] Custom template engine via a `getTemplateRenderer` method in the config file
+- [x] Custom template engine via a `getTemplateRenderer` method in the config file
 - [ ] Auto-reloading preview of the generated PDF via a `--preview` or `-p` option
 - [ ] Using a separate stylesheet via a `--style` or `-s` option
 - [ ] Serving local assets for PDF embedding via `--serve` and `--port` options (ideas for implementation: [1](https://stackoverflow.com/a/67505480), [2](https://github.com/puppeteer/puppeteer/issues/1643))

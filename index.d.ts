@@ -43,6 +43,12 @@ export interface PMEConfig<T = LiquidOptions> {
    * The options passed to {@link PDFRenderer.render}.
    */
   pdfOptions?: PDFOptions;
+
+  /**
+   * Sets up and returns a function that renders HTML from a template string and data
+   * object.
+   */
+  getTemplateRenderer?(options?: T): RenderTemplate;
 }
 
 /**
@@ -54,12 +60,6 @@ export interface CommandArgs<T = LiquidOptions> extends BaseArgs {
    * The options passed down to the template and PDF renderers.
    */
   options?: PMEConfig<T>;
-
-  /**
-   * Sets up and returns a function that renders HTML from a template string and data
-   * object.
-   */
-  getTemplateRenderer?(options?: T): RenderTemplate;
 }
 
 /**

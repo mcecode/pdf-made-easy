@@ -9,12 +9,7 @@ import { findUp, pathExists } from "find-up";
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs/yargs";
 
-import {
-  absolutizePath,
-  build,
-  develop,
-  getDefaultTemplateRenderer
-} from "./index.js";
+import { absolutizePath, build, develop } from "./index.js";
 
 const DEFAULT_CONFIG_FILENAME = "pme.config.mjs";
 
@@ -81,8 +76,7 @@ async function handle(args) {
   try {
     await (command === "build" ? build : develop)({
       ...args,
-      options: await getConfig(config, DEFAULT_CONFIG_FILENAME),
-      getTemplateRenderer: getDefaultTemplateRenderer
+      options: await getConfig(config, DEFAULT_CONFIG_FILENAME)
     });
   } catch ({ message }) {
     console.error(`Error: ${message}`);
