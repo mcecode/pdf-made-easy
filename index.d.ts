@@ -59,7 +59,7 @@ export interface CommandArgs<T = LiquidOptions> extends BaseArgs {
    * Sets up and returns a function that renders HTML from a template string and data
    * object.
    */
-  getTemplateRenderer(options?: T): RenderTemplate;
+  getTemplateRenderer?(options?: T): RenderTemplate;
 }
 
 /**

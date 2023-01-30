@@ -112,7 +112,11 @@ export async function getBuilder() {
 
       const html = await renderHTML(
         absolutizePath(template, rootDir),
-        getTemplateRenderer(options?.templateOptions),
+        (getTemplateRenderer ?? getDefaultTemplateRenderer)(
+          // TODO: Fix type error
+          // @ts-expect-error
+          options?.templateOptions
+        ),
         await getData(absolutizePath(data, rootDir))
       );
 

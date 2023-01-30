@@ -71,7 +71,7 @@ npm install pdf-made-easy
 
 ### API
 
-- [ ] Make the `getTemplateRenderer` command argument optional
+- [x] Make the `getTemplateRenderer` command argument optional
 
 ## Contributing
 
