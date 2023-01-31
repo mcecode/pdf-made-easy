@@ -17,6 +17,7 @@ const cli = yargs();
 
 // Settings
 cli
+  .scriptName("pme")
   .parserConfiguration({
     "boolean-negation": false,
     "dot-notation": false,
