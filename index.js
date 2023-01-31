@@ -110,7 +110,9 @@ export async function getBuilder() {
       const html = await renderHTML(
         absolutizePath(template, rootDir),
         (options?.getTemplateRenderer ?? getDefaultTemplateRenderer)(
-          // TODO: Fix type error
+          // This should be fine as long as 'T' is set when using a custom
+          // renderer and left to the default 'LiquidOptions' when using the
+          // default renderer.
           // @ts-expect-error
           options?.templateOptions
         ),
@@ -140,6 +142,16 @@ export async function getBuilder() {
       isClosed = true;
     }
   };
+}
+
+/**
+ * @param {import("liquidjs/dist/liquid-options").LiquidOptions} [options]
+ * @returns {import("./index").RenderTemplate}
+ */
+function getDefaultTemplateRenderer(options) {
+  const liquid = new Liquid(options);
+
+  return (template, data) => liquid.parseAndRender(template, data);
 }
 
 /** @type {import("./index").getData} */
@@ -208,13 +220,6 @@ export async function renderHTML(path, render, data) {
   }
 
   return render(await fs.readFile(path, "utf-8"), data);
-}
-
-/** @type {import("./index").getDefaultTemplateRenderer} */
-export function getDefaultTemplateRenderer(options) {
-  const liquid = new Liquid(options);
-
-  return (template, data) => liquid.parseAndRender(template, data);
 }
 
 /** @type {import("./index").encodeHTML} */

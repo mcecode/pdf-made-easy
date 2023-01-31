@@ -45,8 +45,8 @@ export interface PMEConfig<T = LiquidOptions> {
   pdfOptions?: PDFOptions;
 
   /**
-   * Sets up and returns a function that renders HTML from a template string and data
-   * object.
+   * Sets up and returns a function that renders HTML from a template string and
+   * data object.
    */
   getTemplateRenderer?(options?: T): RenderTemplate;
 }
@@ -152,13 +152,6 @@ export function renderHTML(
   render: RenderTemplate,
   data?: object
 ): Promise<string>;
-
-/**
- * @returns The default Liquid renderer.
- */
-export function getDefaultTemplateRenderer(
-  options?: LiquidOptions
-): RenderTemplate;
 
 /**
  * Encodes `html` into a Data URL.
