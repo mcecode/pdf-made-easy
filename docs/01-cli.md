@@ -28,25 +28,75 @@ Examples:
 
 ## Configuration
 
-The CLI can be configured using an [ECMAScript module](https://nodejs.org/api/esm.html) config file with a `.mjs` extension. By default, it will search for a file named `pme.config.mjs` in the current working directory. If not found, it will continue searching for this file up the directory tree. If there is no `pme.config.mjs` file found in the directory tree, it will try to look for it in the home directory. Alternatively, you can pass the path to a config file using the `--config` or `-c` option.
+The CLI can optionally be configured using an [ECMAScript module](https://nodejs.org/api/esm.html) config file with a `.mjs` extension. By default, it will search for a file named `pme.config.mjs` in the current working directory. If not found, it will continue searching for this file up the directory tree. If there is no `pme.config.mjs` file found in the directory tree, it will try to look for it in the home directory. Alternatively, you can pass the path to a config file using the `--config` or `-c` option.
 
-If present, the config file is expected to have a default object export with the following optional properties:
+### Options
 
-- [`templateOptions`](https://liquidjs.com/api/interfaces/liquid_options_.liquidoptions.html), this will be passed to the template renderer, which is [Liquid](https://liquidjs.com).
-- [`pdfOptions`](https://pptr.dev/api/puppeteer.pdfoptions), this will be passed to the PDF renderer, which is [Puppeteer](https://pptr.dev).
+If present, the config file is expected to have a default object export with the following optional properties and methods:
 
-Below is an example of a config file:
+#### `templateOptions`
+
+- Type: `object | undefined`
+- Description: Options passed to the template renderer
+- [Default template renderer options reference](https://liquidjs.com/api/interfaces/liquid_options_.liquidoptions.html)
+
+#### `pdfOptions`
+
+- Type: `object | undefined`
+- Description: Options passed to the PDF renderer
+- [PDF renderer options reference](https://pptr.dev/api/puppeteer.pdfoptions)
+
+#### `getTemplateRenderer`
+
+- Type: `function | undefined`
+- Description: Returns a custom template renderer using the options passed from `templateOptions`
+- Signature: `(options?) => (template: string, data?: object) => string | Promise<string>`
+
+### Examples
+
+**Tip:** If PDF Made Easy is installed locally or a global install is [`npm link`ed](https://docs.npmjs.com/cli/v9/commands/npm-link), you can add a [JSDoc](https://jsdoc.app) `@type` comment for [IntelliSense](https://en.wikipedia.org/wiki/Intelligent_code_completion) like in the examples below.
+
+#### Passing options to the template and PDF renderers
 
 ```js
 /** @type {import("pdf-made-easy").PMEConfig} */
 export default {
   templateOptions: {
-    // ...
+    jsTruthy: true,
+    globals: {
+      custom: "global variables here"
+    }
   },
   pdfOptions: {
-    // ...
+    format: "LEGAL",
+    landscape: true,
+    margin: {
+      top: "0.5in",
+      bottom: "0.5in",
+      left: "1in",
+      right: "1in"
+    }
   }
 };
 ```
 
-The [JSDoc](https://jsdoc.app) `@type` comment helps to provide [code completion](https://en.wikipedia.org/wiki/Intelligent_code_completion) when using editors that support loading [declaration files](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html).
+#### Using a custom template renderer
+
+```js
+import Handlebars from "handlebars";
+
+/**
+ * @type {import("pdf-made-easy").PMEConfig<Parameters<Handlebars.compile>[1]>}
+ */
+export default {
+  // 'templateOptions' will be passed to the 'getTemplateRenderer' method below
+  // as 'options'.
+  templateOptions: {
+    noEscape: true,
+    strict: true
+  },
+  getTemplateRenderer(options) {
+    return (template, data) => Handlebars.compile(template, options)(data);
+  }
+};
+```

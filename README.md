@@ -20,9 +20,7 @@ Thus, PME was born.
 
 To fulfill the requirements that I was looking for, the PME CLI takes data from a [YAML](https://yaml.org), [JSON](https://www.json.org/json-en.html), JSON with Comments (JSONC), or [JSON5](https://json5.org) file and injects it into a template to generate HTML which is then used to generate a PDF using [Puppeteer](https://pptr.dev). This process is repeated whenever there are changes to either the data or template file so that the PDF preview can refresh automatically.
 
-Presently, the default template engine used to generate HTML is [Liquid](https://liquidjs.com). This can be changed when using PME as a library, but not as a CLI. However, in the future, [it is planned](#todos) to make this configurable in the CLI as well via [the config file](docs/01-cli.md#configuration).
-
-Additionally, the autorefresh feature currently only works if the viewer used to preview the PDF supports repainting when there are changes to the PDF file. Though, it is also in [the plan](#todos) to add an auto-reloading viewer together with the CLI to make previewing changes more streamlined.
+Currently, the autorefresh feature only works if the viewer used to preview the PDF supports repainting when there are changes to the PDF file. However, in the future, [it is planned](#todos) to add an auto-reloading viewer together with the CLI to make previewing changes more streamlined.
 
 ## Requirements
 
