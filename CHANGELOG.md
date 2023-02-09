@@ -21,7 +21,7 @@ This project adheres to the [Semantic Versioning 2.0 Specification](https://semv
 
 #### CLI
 
-- The help command now shows `pme` as the script name instead of `cli.js`.
+- The help command now shows `pme` as the script name instead of `cli.js` on Windows.
 
 ## 0.1.0 - January 26, 2023
 
