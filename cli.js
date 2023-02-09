@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fs from "node:fs/promises";
 import nodePath from "node:path";
 import os from "node:os";
 import url from "node:url";
@@ -37,9 +36,6 @@ cli
 cli.usage("$0").usage("$0 [options]").usage("$0 <command> [options]");
 
 // Commands
-// Hide version option when showing help for non-default commands.
-const builder = { v: { hidden: true } };
-
 cli
   .command({
     command: "$0",
@@ -51,7 +47,7 @@ cli
   .command({
     command: "dev",
     describe: "Watch data and template files and output PDF on change",
-    builder,
+    builder: buildNonDefaultCommand,
     // The type works out, but generic types are hard to declare in JavaScript.
     // @ts-expect-error
     handler: handle
@@ -59,11 +55,20 @@ cli
   .command({
     command: "build",
     describe: "Output PDF using data and template files",
-    builder,
+    builder: buildNonDefaultCommand,
     // The type works out, but generic types are hard to declare in JavaScript.
     // @ts-expect-error
     handler: handle
   });
+
+/**
+ * Disables version option for non-default commands.
+ *
+ * @param {import("yargs").Argv} y
+ */
+function buildNonDefaultCommand(y) {
+  return y.version(false);
+}
 
 /**
  * @param {import("yargs").ArgumentsCamelCase<import("./index").PMEArgs>} args
@@ -142,10 +147,7 @@ async function importDefault(path) {
 }
 
 // Options
-cli.options({
-  help: {
-    alias: "h"
-  },
+cli.alias({ help: "h", version: "v" }).options({
   config: {
     alias: "c",
     describe: "Path to MJS config file",
@@ -171,24 +173,6 @@ cli.options({
     default: "output.pdf"
   }
 });
-
-// The version option is set like this so 'v' can be used as the key to hide it
-// when showing help for non-default commands; using the whole word 'version'
-// results in an error.
-cli
-  .version(
-    "v",
-    JSON.parse(
-      await fs.readFile(
-        nodePath.join(
-          url.fileURLToPath(nodePath.dirname(import.meta.url)),
-          "package.json"
-        ),
-        "utf-8"
-      )
-    ).version
-  )
-  .alias({ v: "version" });
 
 // Examples
 cli.example([
