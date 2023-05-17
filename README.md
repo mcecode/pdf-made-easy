@@ -2,7 +2,7 @@
 
 PDF Made Easy (PME) is a CLI application and library for developing and creating PDF documents.
 
-![Demo](assets/demo.gif)
+![A demo showing how the PME autorefresh feature works as the output PDF refreshes when either the template or data file is updated.](assets/demo.gif)
 
 ## Rationale
 
