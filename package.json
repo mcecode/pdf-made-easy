@@ -34,7 +34,7 @@
   },
   "scripts": {
     "format": "prettier . -w",
-    "lint": "eslint . --cache --cache-location node_modules && prettier . -c",
+    "lint": "prettier . -c",
     "test": "sh ./test.sh"
   },
   "dependencies": {
@@ -47,7 +47,6 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "eslint-config-mcecode": "^4.0.0",
     "prettier": "3.3.3"
   }
 }

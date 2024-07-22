@@ -29,7 +29,6 @@ export async function develop(args, rootDir = process.cwd()) {
     ];
 
     for (const pathToWatch of pathsToWatch) {
-      // eslint-disable-next-line no-await-in-loop
       if (!(await pathExists(pathToWatch))) {
         throw new Error(`'${pathToWatch}' does not exist.`);
       }
@@ -138,7 +137,6 @@ export async function getBuilder() {
 
       await pdfRenderer.close();
       // 'isClosed' is meant to only be reassigned here and nowhere else.
-      // eslint-disable-next-line require-atomic-updates
       isClosed = true;
     }
   };
@@ -253,7 +251,6 @@ export async function getPDFRenderer() {
 
       await browser.close();
       // 'isClosed' is meant to only be reassigned here and nowhere else.
-      // eslint-disable-next-line require-atomic-updates
       isClosed = true;
     }
   };
