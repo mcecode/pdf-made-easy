@@ -38,16 +38,16 @@
     "test": "sh ./test.sh"
   },
   "dependencies": {
-    "@parcel/watcher": "^2.1.0",
-    "find-up": "^6.3.0",
+    "@parcel/watcher": "^2.4.0",
+    "find-up": "^7.0.0",
     "json5": "^2.2.3",
-    "liquidjs": "^10.4.0",
-    "puppeteer": "^19.5.2",
-    "yaml": "^2.2.1",
-    "yargs": "^17.6.2"
+    "liquidjs": "^10.15.0",
+    "puppeteer": "^22.13.1",
+    "yaml": "^2.4.5",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "eslint-config-mcecode": "^4.0.0",
-    "prettier": "2.8.3"
+    "prettier": "3.3.3"
   }
 }
