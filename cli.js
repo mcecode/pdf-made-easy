@@ -40,24 +40,18 @@ cli
   .command({
     command: "$0",
     describe: "Same as 'dev' command",
-    // The type works out, but generic types are hard to declare in JavaScript.
-    // @ts-expect-error
     handler: handle
   })
   .command({
     command: "dev",
     describe: "Watch data and template files and output PDF on change",
     builder: buildNonDefaultCommand,
-    // The type works out, but generic types are hard to declare in JavaScript.
-    // @ts-expect-error
     handler: handle
   })
   .command({
     command: "build",
     describe: "Output PDF using data and template files",
     builder: buildNonDefaultCommand,
-    // The type works out, but generic types are hard to declare in JavaScript.
-    // @ts-expect-error
     handler: handle
   });
 
@@ -156,7 +150,7 @@ cli.alias({ help: "h", version: "v" }).options({
   },
   data: {
     alias: "d",
-    describe: "Path to YAML or JSON data file",
+    describe: "Path to YAML data file",
     type: "string",
     default: "data.yml"
   },
@@ -177,10 +171,10 @@ cli.alias({ help: "h", version: "v" }).options({
 // Examples
 cli.example([
   ["$0"],
-  ["$0 -d data.json"],
+  ["$0 -d info.yml"],
   ["$0 dev -t ./templates/default.liquid"],
   ["$0 build -o /home/user/document.pdf"],
-  ["$0 -d data.json -t ./templates/default.liquid -o /home/user/document.pdf"]
+  ["$0 -d info.yml -t ./templates/default.liquid -o /home/user/document.pdf"]
 ]);
 
 // Parse and execute

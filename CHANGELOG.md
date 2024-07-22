@@ -2,6 +2,12 @@
 
 This project adheres to the [Semantic Versioning 2.0 Specification](https://semver.org).
 
+## Unreleased
+
+### ⚠️ Breaking
+
+- JSON, JSONC, and JSON5 are no longer supported as data file formats.
+
 ## 0.2.0 - February 01, 2023
 
 ### ⚠️ Breaking

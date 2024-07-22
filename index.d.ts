@@ -3,7 +3,7 @@ import { PDFOptions } from "puppeteer";
 
 export interface BaseArgs {
   /**
-   * The path to the YAML or JSON data file.
+   * The path to the YAML data file.
    */
   data: string;
 
@@ -117,17 +117,10 @@ export interface Builder {
 export function getBuilder(): Promise<Builder>;
 
 /**
- * Reads the contents of the YAML, JSON, JSONC, or JSON5 file in `path` then
- * returns its JavaScript representation.
+ * Reads the contents of the YAML file in `path` then returns its JavaScript
+ * representation.
  */
 export function getData(path: string): Promise<any>;
-
-/**
- * Parses `data` then returns its JavaScript representation.
- *
- * @param type The type of the data to be parsed.
- */
-export function parseData(data: string, type?: "yaml" | "json"): any;
 
 /**
  * @param template The template to render.

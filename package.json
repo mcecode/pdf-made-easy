@@ -7,7 +7,6 @@
   "description": "A CLI application and library for developing and creating PDF documents.",
   "keywords": [
     "cli",
-    "json",
     "yaml",
     "template",
     "liquid",
@@ -40,7 +39,6 @@
   "dependencies": {
     "@parcel/watcher": "^2.4.0",
     "find-up": "^7.0.0",
-    "json5": "^2.2.3",
     "liquidjs": "^10.15.0",
     "puppeteer": "^22.13.1",
     "yaml": "^2.4.5",

@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import nodePath from "node:path";
 
-import JSON5 from "json5";
 import { Liquid } from "liquidjs";
 import YAML from "yaml";
 import { pathExists } from "find-up";
@@ -13,8 +12,7 @@ import watcher from "@parcel/watcher";
 // @parcel/watcher. They are disregarded for now until a better solution can be
 // made.
 const errorsToDisregard = [
-  "'data' must be an object or undefined, given 'null'",
-  "JSON5: invalid end of input at 1:1"
+  "'data' must be an object or undefined, given 'null'"
 ];
 
 /** @type {import("./index").develop} */
@@ -166,29 +164,10 @@ export async function getData(path) {
   const data = await fs.readFile(path, "utf-8");
 
   if ([".yml", ".yaml"].includes(ext)) {
-    return parseData(data);
+    return YAML.parse(data);
   }
 
-  if ([".json", ".jsonc", ".json5"].includes(ext)) {
-    return parseData(data, "json");
-  }
-
-  throw new Error(
-    `Only YAML, JSON, JSONC, and JSON5 formats are accepted, given ${ext}`
-  );
-}
-
-/** @type {import("./index").parseData} */
-export function parseData(data, type = "yaml") {
-  if (typeof data !== "string") {
-    throw new TypeError(`'data' must be a string, given '${typeof data}'`);
-  }
-
-  if (!["yaml", "json"].includes(type)) {
-    throw new Error(`'type' must either be 'yaml' or 'json', given '${type}'`);
-  }
-
-  return type === "yaml" ? YAML.parse(data) : JSON5.parse(data);
+  throw new Error(`Only YAML format is accepted, given ${ext}`);
 }
 
 /** @type {import("./index").renderHTML} */
