@@ -156,7 +156,7 @@ cli.alias({ help: "h", version: "v" }).options({
   },
   template: {
     alias: "t",
-    describe: "Path to template file",
+    describe: "Path to Liquid template file",
     type: "string",
     default: "template.liquid"
   },

@@ -104,15 +104,10 @@ export async function getBuilder() {
         throw new Error(`Root directory '${rootDir}' does not exist`);
       }
 
+      const liquid = new Liquid(options?.liquidOptions);
       const html = await renderHTML(
         absolutizePath(template, rootDir),
-        (options?.getTemplateRenderer ?? getDefaultTemplateRenderer)(
-          // This should be fine as long as 'T' is set when using a custom
-          // renderer and left to the default 'LiquidOptions' when using the
-          // default renderer.
-          // @ts-expect-error
-          options?.templateOptions
-        ),
+        liquid.parseAndRender.bind(liquid),
         await getData(absolutizePath(data, rootDir))
       );
 
@@ -138,16 +133,6 @@ export async function getBuilder() {
       isClosed = true;
     }
   };
-}
-
-/**
- * @param {import("liquidjs/dist/liquid-options").LiquidOptions} [options]
- * @returns {import("./index").RenderTemplate}
- */
-function getDefaultTemplateRenderer(options) {
-  const liquid = new Liquid(options);
-
-  return (template, data) => liquid.parseAndRender(template, data);
 }
 
 /** @type {import("./index").getData} */

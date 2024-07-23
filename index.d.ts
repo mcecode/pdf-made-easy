@@ -1,5 +1,6 @@
-import { LiquidOptions } from "liquidjs/dist/liquid-options";
-import { PDFOptions } from "puppeteer";
+import type { Liquid } from "liquidjs";
+import type { LiquidOptions } from "liquidjs/dist/liquid-options";
+import type { PDFOptions } from "puppeteer";
 
 export interface BaseArgs {
   /**
@@ -33,33 +34,27 @@ export interface PMEArgs extends BaseArgs {
  * The CLI config file settings which are passed down to {@link Builder.build},
  * {@link build}, and {@link develop} through {@link CommandArgs.options}.
  */
-export interface PMEConfig<T = LiquidOptions> {
+export interface PMEConfig {
   /**
-   * The options passed to {@link CommandArgs.getTemplateRenderer}.
+   * The options passed to the Liquid constructor.
    */
-  templateOptions?: T;
+  liquidOptions?: LiquidOptions;
 
   /**
    * The options passed to {@link PDFRenderer.render}.
    */
   pdfOptions?: PDFOptions;
-
-  /**
-   * Sets up and returns a function that renders HTML from a template string and
-   * data object.
-   */
-  getTemplateRenderer?(options?: T): RenderTemplate;
 }
 
 /**
  * The arguments passed to {@link Builder.build}, {@link build}, and
  * {@link develop}.
  */
-export interface CommandArgs<T = LiquidOptions> extends BaseArgs {
+export interface CommandArgs extends BaseArgs {
   /**
    * The options passed down to the template and PDF renderers.
    */
-  options?: PMEConfig<T>;
+  options?: PMEConfig;
 }
 
 /**
@@ -71,8 +66,8 @@ export interface CommandArgs<T = LiquidOptions> extends BaseArgs {
  * paths passed to `args` to find their absolute paths.
  * @returns A cleanup function that disposes all resources instantiated.
  */
-export function develop<T = LiquidOptions>(
-  args: CommandArgs<T>,
+export function develop(
+  args: CommandArgs,
   rootDir?: string
 ): Promise<() => Promise<void>>;
 
@@ -83,10 +78,7 @@ export function develop<T = LiquidOptions>(
  * @param rootDir Defaults to `process.cwd()`. Prepended to the relative paths
  * passed to `args` to find their absolute paths.
  */
-export function build<T = LiquidOptions>(
-  args: CommandArgs<T>,
-  rootDir?: string
-): Promise<void>;
+export function build(args: CommandArgs, rootDir?: string): Promise<void>;
 
 /**
  * Contains methods for rendering PDF files from data and template files.
@@ -98,10 +90,7 @@ export interface Builder {
    * @param rootDir Defaults to `process.cwd()`. Prepended to the relative paths
    * passed to `args` to find their absolute paths.
    */
-  build<T = LiquidOptions>(
-    args: CommandArgs<T>,
-    rootDir?: string
-  ): Promise<void>;
+  build(args: CommandArgs, rootDir?: string): Promise<void>;
 
   /**
    * Disposes all resources instantiated by {@link getBuilder} and turns
@@ -123,15 +112,6 @@ export function getBuilder(): Promise<Builder>;
 export function getData(path: string): Promise<any>;
 
 /**
- * @param template The template to render.
- * @param data The data to populate the template with.
- * @returns The rendered template.
- */
-export interface RenderTemplate {
-  (template: string, data?: object): string | Promise<string>;
-}
-
-/**
  * Renders HTML from the template found in `path` using the `render` function
  * and `data` object passed.
  *
@@ -142,7 +122,7 @@ export interface RenderTemplate {
  */
 export function renderHTML(
   path: string,
-  render: RenderTemplate,
+  render: Liquid["parseAndRender"],
   data?: object
 ): Promise<string>;
 
