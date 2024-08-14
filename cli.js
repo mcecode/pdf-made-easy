@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import nodePath from "node:path";
 import os from "node:os";
+import nodePath from "node:path";
 import url from "node:url";
 
 import { findUp, pathExists } from "find-up";
@@ -9,6 +9,12 @@ import { hideBin } from "yargs/helpers";
 import yargs from "yargs/yargs";
 
 import { absolutizePath, build, develop } from "./index.js";
+
+/**
+ * @typedef {import("yargs").Argv} Argv
+ *
+ * @typedef {import("./types.d.ts").CLIOptions} CLIOptions
+ */
 
 const DEFAULT_CONFIG_FILENAME = "pme.config.mjs";
 
@@ -58,14 +64,14 @@ cli
 /**
  * Disables version option for non-default commands.
  *
- * @param {import("yargs").Argv} y
+ * @param {Argv} y
  */
 function buildNonDefaultCommand(y) {
   return y.version(false);
 }
 
 /**
- * @param {import("yargs").ArgumentsCamelCase<import("./index").PMEArgs>} args
+ * @param {import("yargs").ArgumentsCamelCase<CLIOptions>} args
  */
 async function handle(args) {
   const {
@@ -144,7 +150,7 @@ async function importDefault(path) {
 cli.alias({ help: "h", version: "v" }).options({
   config: {
     alias: "c",
-    describe: "Path to MJS config file",
+    describe: "Path to config file",
     type: "string",
     default: DEFAULT_CONFIG_FILENAME
   },

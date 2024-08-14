@@ -1,21 +1,43 @@
 import fs from "node:fs/promises";
 import nodePath from "node:path";
 
-import { Liquid } from "liquidjs";
-import YAML from "yaml";
-import { pathExists } from "find-up";
-import puppeteer from "puppeteer";
 import watcher from "@parcel/watcher";
+import { pathExists } from "find-up";
+import { Liquid } from "liquidjs";
+import puppeteer from "puppeteer";
+import YAML from "yaml";
 
-// These are the downstream error messages thrown due to the 'fs.readFile' in
-// 'getData' sometimes returning an empty string when used together with
-// @parcel/watcher. They are disregarded for now until a better solution can be
-// made.
+/**
+ * @typedef {import("liquidjs").Liquid["parseAndRender"]} RenderLiquid
+ *
+ * @typedef {import("./types.d.ts").Builder} Builder
+ * @typedef {import("./types.d.ts").BuildOptions} BuildOptions
+ * @typedef {import("./types.d.ts").PDFRenderer} PDFRenderer
+ */
+
+/**
+ * These are the downstream error messages thrown due to the `fs.readFile` in
+ * `getData` sometimes returning an empty string when used together with
+ * `@parcel/watcher`. They are disregarded for now until a better solution can
+ * be made.
+ */
 const errorsToDisregard = [
   "'data' must be an object or undefined, given 'null'"
 ];
 
-/** @type {import("./index").develop} */
+/**
+ * Instantiates resources needed for PDF generation, then watches data and
+ * template files for changes and outputs a PDF file on change.
+ *
+ * @param {BuildOptions} args
+ * @param {string} rootDir
+ *   Defaults to `process.cwd()`. The directory watched for changes to trigger
+ *   re-emmiting the PDF file on change. Prepended to the relative paths passed
+ *   to `args` to find their absolute paths.
+ *
+ * @returns {Promise<() => Promise<void>>}
+ *   A cleanup function that disposes all resources instantiated.
+ */
 export async function develop(args, rootDir = process.cwd()) {
   let builder;
   let subscription;
@@ -71,7 +93,17 @@ export async function develop(args, rootDir = process.cwd()) {
   }
 }
 
-/** @type {import("./index").build} */
+/**
+ * Instantiates resources needed for PDF generation, outputs a PDF file using
+ * data and template files, then disposes all resources instantiated.
+ *
+ * @param {BuildOptions} args
+ * @param {string} rootDir
+ *   Defaults to `process.cwd()`. Prepended to the relative paths passed to
+ *   `args` to find their absolute paths.
+ *
+ * @returns {Promise<void>}
+ */
 export async function build(args, rootDir = process.cwd()) {
   let builder;
 
@@ -83,7 +115,12 @@ export async function build(args, rootDir = process.cwd()) {
   }
 }
 
-/** @type {import("./index").getBuilder} */
+/**
+ * Instantiates resources needed for PDF generation then returns a
+ * {@link Builder} object.
+ *
+ * @returns {Promise<Builder>}
+ */
 export async function getBuilder() {
   const pdfRenderer = await getPDFRenderer();
   let isClosed = false;
@@ -135,7 +172,14 @@ export async function getBuilder() {
   };
 }
 
-/** @type {import("./index").getData} */
+/**
+ * Reads the contents of the YAML file in `path` then returns its JavaScript
+ * representation.
+ *
+ * @param {string} path
+ *
+ * @returns {Promise<any>}
+ */
 export async function getData(path) {
   if (typeof path !== "string") {
     throw new TypeError(`'path' must be a string, given '${typeof path}'`);
@@ -152,10 +196,20 @@ export async function getData(path) {
     return YAML.parse(data);
   }
 
-  throw new Error(`Only YAML format is accepted, given ${ext}`);
+  throw new Error(`Only YAML format is accepted, given '${ext}'`);
 }
 
-/** @type {import("./index").renderHTML} */
+/**
+ * Renders HTML from the template found in `path` using the `render` function
+ * and `data` object passed.
+ *
+ * @param {string} path
+ * @param {RenderLiquid} render
+ * @param {object} [data]
+ *
+ * @returns {Promise<string>}
+ *   The rendered HTML.
+ */
 export async function renderHTML(path, render, data) {
   if (typeof path !== "string") {
     throw new TypeError(`'path' must be a string, given '${typeof path}'`);
@@ -184,7 +238,14 @@ export async function renderHTML(path, render, data) {
   return render(await fs.readFile(path, "utf-8"), data);
 }
 
-/** @type {import("./index").encodeHTML} */
+/**
+ * Encodes `html` into a Data URL.
+ *
+ * @param {string} html
+ *
+ * @returns {string}
+ *   The HTML Data URL.
+ */
 export function encodeHTML(html) {
   if (typeof html !== "string") {
     throw new TypeError(`'html' must be a string, given '${typeof html}'`);
@@ -193,7 +254,12 @@ export function encodeHTML(html) {
   return `data:text/html,${encodeURIComponent(html)}`;
 }
 
-/** @type {import("./index").getPDFRenderer} */
+/**
+ * Instantiates resources needed for PDF generation then returns a
+ * {@link PDFRenderer} object.
+ *
+ * @returns {Promise<PDFRenderer>}
+ */
 export async function getPDFRenderer() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -220,7 +286,16 @@ export async function getPDFRenderer() {
   };
 }
 
-/** @type {import("./index").absolutizePath} */
+/**
+ * Absolutizes `path` by joining it to `rootDir` then normalizes the output.
+ * Returns a normalized `path` if it is already an absolute path.
+ *
+ * @param {string} path
+ * @param {string} rootDir
+ *   Defaults to `process.cwd()`.
+ *
+ * @returns {string}
+ */
 export function absolutizePath(path, rootDir = process.cwd()) {
   if (typeof path !== "string") {
     throw new TypeError(`'path' must be a string, given '${typeof path}'`);
