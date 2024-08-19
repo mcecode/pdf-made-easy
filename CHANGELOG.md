@@ -6,6 +6,8 @@ This project adheres to the [Semantic Versioning 2.0 Specification](https://semv
 
 ### ⚠️ Breaking
 
+- **This package no longer exports any functions and is now CLI only.**
+- This package now only exports one type, `PMEUserConfig`, formerly `PMEConfig`.
 - JSON, JSONC, and JSON5 are no longer supported as data file formats.
 - Supplying a custom template renderer is no longer supported.
 
