@@ -3,7 +3,7 @@
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs/yargs";
 
-import { buildNonDefaultCommand, handle } from "./lib.js";
+import { buildNonDefaultCommand, executeCommand } from "./lib.js";
 
 yargs()
   // Settings
@@ -32,19 +32,19 @@ yargs()
   .command({
     command: "$0",
     describe: "Same as 'dev' command",
-    handler: handle
+    handler: executeCommand
   })
   .command({
     command: "dev",
     describe: "Watch data and template files and output PDF on change",
     builder: buildNonDefaultCommand,
-    handler: handle
+    handler: executeCommand
   })
   .command({
     command: "build",
     describe: "Output PDF using data and template files",
     builder: buildNonDefaultCommand,
-    handler: handle
+    handler: executeCommand
   })
 
   // Options

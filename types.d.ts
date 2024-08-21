@@ -1,5 +1,5 @@
 import type { LiquidOptions } from "liquidjs/dist/liquid-options";
-import type { Page, PDFOptions } from "puppeteer";
+import type { PDFOptions } from "puppeteer";
 
 interface BaseOptions {
   /**
@@ -50,38 +50,12 @@ interface BuildOptions extends BaseOptions {
 interface Builder {
   /**
    * Outputs a PDF file using data and template files.
-   *
-   * @param rootDir
-   *   Defaults to `process.cwd()`. Prepended to the relative paths passed to
-   *   `args` to find their absolute paths.
    */
-  build(args: BuildOptions, rootDir?: string): Promise<void>;
+  build(args: BuildOptions): Promise<void>;
 
   /**
    * Disposes all resources instantiated and turns {@link Builder.build} and
    * {@link Builder.close} into NOOP methods.
-   */
-  close(): Promise<void>;
-}
-
-/**
- * Contains methods for rendering PDF files from URLs.
- */
-interface PDFRenderer {
-  /**
-   * Renders a PDF from the HTML found in `url`.
-   *
-   * @param options
-   *   Options passed to Puppeteer's PDF renderer.
-   *
-   * @returns
-   *   The rendered PDF.
-   */
-  render(url: string, options?: PDFOptions): ReturnType<Page["pdf"]>;
-
-  /**
-   * Disposes all resources instantiated and turns {@link PDFRenderer.render}
-   * and {@link PDFRenderer.close} into NOOP methods.
    */
   close(): Promise<void>;
 }
