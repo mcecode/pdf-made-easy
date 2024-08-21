@@ -10,10 +10,39 @@ import puppeteer from "puppeteer";
 import YAML from "yaml";
 
 /**
- * @typedef {import("./types.d.ts").Builder} Builder
- * @typedef {import("./types.d.ts").BuildOptions} BuildOptions
- * @typedef {import("./types.d.ts").CLIOptions} CLIOptions
- * @typedef {import("./types.d.ts").PMEUserConfig} PMEUserConfig
+ * @typedef {import("puppeteer").Browser} Browser
+ * @typedef {import("puppeteer").Page} Page
+ * @typedef {import("yargs").Argv} Argv
+ *
+ * @typedef {import("./index.d.ts").PMEUserConfig} PMEUserConfig
+ *
+ * @typedef Builder
+ *   Contains methods for rendering PDF files from data and template files.
+ * @property {(args: BuildOptions) => Promise<void>} build
+ *   Outputs a PDF file using data and template files.
+ * @property {() => Promise<void>} close
+ *   Disposes all resources instantiated and turns {@link Builder.build} and
+ *   {@link Builder.close} into NOOP methods.
+ *
+ * @typedef BuildOptions
+ * @property {string} data
+ *   Path to YAML data file.
+ * @property {string} template
+ *   Path to Liquid template file.
+ * @property {string} output
+ *   Path to PDF output file.
+ * @property {PMEUserConfig} options
+ *   Options passed down to Liquid and Puppeteer.
+ *
+ * @typedef CLIOptions
+ * @property {string} data
+ *   Path to YAML data file.
+ * @property {string} template
+ *   Path to Liquid template file.
+ * @property {string} output
+ *   Path to PDF output file.
+ * @property {string} config
+ *   Path to config file.
  */
 
 // TODO: Improve error messages.
@@ -21,9 +50,9 @@ import YAML from "yaml";
 /**
  * Disables the version option for non-default commands.
  *
- * @param {import("yargs").Argv} yargs
+ * @param {Argv} yargs
  *
- * @returns {import("yargs").Argv}
+ * @returns {Argv}
  */
 export function buildNonDefaultCommand(yargs) {
   return yargs.version(false);
@@ -211,11 +240,11 @@ async function develop(args) {
  */
 async function getBuilder() {
   let isClosed = false;
-  /** @type {import("liquidjs").Liquid | null} */
+  /** @type {Liquid | null} */
   let liquid = null;
-  /** @type {import("puppeteer").Browser | null} */
+  /** @type {Browser | null} */
   let browser = null;
-  /** @type {import("puppeteer").Page | null} */
+  /** @type {Page | null} */
   let page = null;
 
   return {
