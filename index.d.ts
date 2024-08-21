@@ -13,4 +13,10 @@ export interface PMEUserConfig {
    * @see {@link https://pptr.dev/api/puppeteer.pdfoptions}
    */
   pdfOptions?: PDFOptions;
+
+  /**
+   * Options passed to Puppeteer when it launches a browser instance.
+   * @see {@link https://pptr.dev/api/puppeteer.puppeteerlaunchoptions}
+   */
+  puppeteerLaunchOptions?: PuppeteerLaunchOptions;
 }

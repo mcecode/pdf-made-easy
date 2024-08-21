@@ -297,7 +297,7 @@ async function getBuilder() {
 
       // Render HTML from template and data
       if (liquid === null) {
-        liquid = new Liquid(options?.liquidOptions);
+        liquid = new Liquid(options.liquidOptions);
       }
       const encodedHtml =
         "data:text/html," +
@@ -307,13 +307,13 @@ async function getBuilder() {
 
       // Render PDF from HTML
       if (browser === null) {
-        browser = await puppeteer.launch();
+        browser = await puppeteer.launch(options.puppeteerLaunchOptions);
       }
       if (page === null) {
         page = await browser.newPage();
       }
       await page.goto(encodedHtml);
-      await fs.writeFile(outputFile, await page.pdf(options?.pdfOptions));
+      await fs.writeFile(outputFile, await page.pdf(options.pdfOptions));
     },
     async close() {
       if (isClosed) {
