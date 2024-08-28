@@ -52,9 +52,8 @@ yargs()
   .options({
     config: {
       alias: "c",
-      describe: "Path to config file",
-      type: "string",
-      default: "pme.config.mjs"
+      describe: "Path to JavaScript config file",
+      type: "string"
     },
     data: {
       alias: "d",

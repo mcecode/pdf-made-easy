@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
-import os from "node:os";
 import nodePath from "node:path";
-import url from "node:url";
 
 import watcher from "@parcel/watcher";
-import { findUp, pathExists } from "find-up";
 import { Liquid } from "liquidjs";
+// TODO: Refactor out dependency from `pathExists`, just try to open the file
+// and handle any errors from there.
+import { pathExists } from "path-exists";
 import puppeteer from "puppeteer";
 import YAML from "yaml";
 
@@ -42,7 +42,7 @@ import YAML from "yaml";
  * @property {string} output
  *   Path to PDF output file.
  * @property {string} config
- *   Path to config file.
+ *   Path to JavaScript config file.
  */
 
 // TODO: Improve error messages.
@@ -69,38 +69,11 @@ export function buildNonDefaultCommand(yargs) {
 export async function executeCommand(args) {
   const {
     _: [command],
-    config: configName
+    config
   } = args;
 
   try {
-    // Load config file
-    if (nodePath.extname(configName) !== ".mjs") {
-      throw new Error(
-        "Config file must be a .mjs ESM module, " +
-          `'${nodePath.basename(configName)}' given`
-      );
-    }
-
-    let configPath = "";
-    /** @type {PMEUserConfig} */
-    let options = {};
-
-    if (configName === "pme.config.mjs") {
-      configPath =
-        (await findUp(configName)) ?? nodePath.join(os.homedir(), configName);
-
-      if (await pathExists(configPath)) {
-        options = await importConfig(configPath);
-      }
-    } else {
-      configPath = absolutizePath(configName);
-
-      if (!(await pathExists(configPath))) {
-        throw new Error(`Config file '${configPath}' does not exist`);
-      }
-
-      options = await importConfig(configPath);
-    }
+    const options = await loadConfig(config);
 
     // Execute command
     // TODO: Handle calling develop's cleanup function on exit.
@@ -112,33 +85,87 @@ export async function executeCommand(args) {
 }
 
 /**
- * Imports the config file from `path` and returns its default export.
+ * Tries to import and return the default export of the config found in `path`.
+ * If `path` is `undefined`, default config file names are tried. Returns an
+ * empty object if no config file is found.
+ *
+ * @param {string} [path]
+ *
+ * @returns {Promise<PMEUserConfig>}
+ */
+async function loadConfig(path) {
+  if (
+    typeof path !== "undefined" &&
+    ![".js", ".mjs", ".cjs"].includes(nodePath.extname(path))
+  ) {
+    throw new Error(
+      "Config file must be a JavaScript file, " +
+        `'${nodePath.basename(path)}' given`
+    );
+  }
+
+  if (typeof path !== "undefined") {
+    const config = absolutizePath(path);
+    const mod = await tryToImportConfig(config);
+
+    if (mod instanceof Error) {
+      throw new Error(`Config file '${config}' does not exist`);
+    }
+
+    return mod.default;
+  }
+
+  for (const config of [
+    absolutizePath("pme.config.js"),
+    absolutizePath("pme.config.mjs"),
+    absolutizePath("pme.config.cjs")
+  ]) {
+    const mod = await tryToImportConfig(config);
+
+    if (mod instanceof Error) {
+      continue;
+    }
+
+    return mod.default;
+  }
+
+  return {};
+}
+
+/**
+ * Tries to import and return the config found in `path` while checking if its
+ * default export is an object or not. Returns an `Error` if no module is found
+ * in `path`.
  *
  * @param {string} path
  *
- * @returns {Promise<object>}
+ * @returns {Promise<{ default: object }>}
  */
-async function importConfig(path) {
-  const mod = await import(url.pathToFileURL(path).href);
+async function tryToImportConfig(path) {
+  try {
+    const mod = await import(path);
 
-  if (typeof mod.default === "undefined") {
-    throw new Error(`Config file '${path}' does not have a default export`);
+    if (typeof mod.default !== "object") {
+      throw new TypeError(
+        "Config file should have an object default export, " +
+          `found '${typeof mod.default}'`
+      );
+    }
+
+    if (mod.default === null) {
+      throw new TypeError(
+        "Config file should have an object default export, found 'null'"
+      );
+    }
+
+    return mod;
+  } catch (error) {
+    if (error.code === "ERR_MODULE_NOT_FOUND") {
+      return error;
+    }
+
+    throw error;
   }
-
-  if (typeof mod.default !== "object") {
-    throw new TypeError(
-      "Config file should have an object default export, " +
-        `exported '${typeof mod.default}'`
-    );
-  }
-
-  if (mod.default === null) {
-    throw new TypeError(
-      "Config file should have an object default export, exported 'null'"
-    );
-  }
-
-  return mod.default;
 }
 
 /**
