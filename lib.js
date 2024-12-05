@@ -3,9 +3,6 @@ import nodePath from "node:path";
 
 import watcher from "@parcel/watcher";
 import { Liquid } from "liquidjs";
-// TODO: Refactor out dependency from `pathExists`, just try to open the file
-// and handle any errors from there.
-import { pathExists } from "path-exists";
 import puppeteer from "puppeteer";
 import YAML from "yaml";
 
@@ -207,7 +204,9 @@ async function develop(args) {
     ];
 
     for (const pathToWatch of pathsToWatch) {
-      if (!(await pathExists(pathToWatch))) {
+      try {
+        await fs.access(pathToWatch);
+      } catch {
         throw new Error(`'${pathToWatch}' does not exist.`);
       }
     }
@@ -282,24 +281,27 @@ async function getBuilder() {
 
       // Get template
       const templateFile = absolutizePath(template);
-      if (!(await pathExists(templateFile))) {
+      let templateContents;
+      try {
+        templateContents = await fs.readFile(templateFile, "utf-8");
+      } catch {
         throw new Error(`Template file '${templateFile}' does not exist`);
       }
 
-      const templateContents = await fs.readFile(templateFile, "utf-8");
-
       // Get data
       const dataFile = absolutizePath(data);
-      if (!(await pathExists(dataFile))) {
-        throw new Error(`Data file '${dataFile}' does not exist`);
-      }
 
       const dataExt = nodePath.extname(dataFile);
       if (![".yml", ".yaml"].includes(dataExt)) {
         throw new Error(`Only YAML format is accepted, given '${dataExt}'`);
       }
 
-      const dataContents = YAML.parse(await fs.readFile(dataFile, "utf-8"));
+      let dataContents;
+      try {
+        dataContents = YAML.parse(await fs.readFile(dataFile, "utf-8"));
+      } catch {
+        throw new Error(`Data file '${dataFile}' does not exist`);
+      }
       if (
         typeof dataContents !== "object" &&
         typeof dataContents !== "undefined"
@@ -317,10 +319,7 @@ async function getBuilder() {
 
       // Prepare output path
       const outputFile = absolutizePath(output);
-      const outputDir = nodePath.dirname(outputFile);
-      if (!(await pathExists(outputDir))) {
-        await fs.mkdir(outputDir, { recursive: true });
-      }
+      await fs.mkdir(nodePath.dirname(outputFile), { recursive: true });
 
       // Render HTML from template and data
       if (liquid === null) {
