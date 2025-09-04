@@ -14,10 +14,7 @@ yargs()
     "duplicate-arguments-array": false,
     "populate--": true,
     "strip-aliased": true,
-    "strip-dashed": true,
-    // In preparation for yargs-parser version 18, see:
-    // https://github.com/yargs/yargs-parser#greedy-arrays
-    "greedy-arrays": true
+    "strip-dashed": true
   })
   .showHelpOnFail(false)
   .recommendCommands()
