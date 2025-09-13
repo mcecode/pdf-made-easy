@@ -16,7 +16,7 @@ This project adheres to the [Semantic Versioning 2.0 Specification](https://semv
 ### ✨ New
 
 - Config files can now also be `.js` or `.cjs`. If no config file is supplied via the `--config` or `-c` flag, it will now try to find `pme.config.js`, `pme.config.mjs`, and `pme.config.cjs` in the current working directory, in that order.
-- `puppeteerLaunchOptions` can now be set in the config file.
+- `launchOptions` can now be set in the config file.
 
 ## 0.2.0 - February 01, 2023
 

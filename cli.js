@@ -5,7 +5,7 @@ import yargs from "yargs/yargs";
 
 import { buildNonDefaultCommand, executeCommand } from "./lib.js";
 
-yargs()
+await yargs()
   // Settings
   .scriptName("pme")
   .parserConfiguration({
@@ -32,15 +32,15 @@ yargs()
     handler: executeCommand
   })
   .command({
+    builder: buildNonDefaultCommand,
     command: "dev",
     describe: "Watch data and template files and output PDF on change",
-    builder: buildNonDefaultCommand,
     handler: executeCommand
   })
   .command({
+    builder: buildNonDefaultCommand,
     command: "build",
     describe: "Output PDF using data and template files",
-    builder: buildNonDefaultCommand,
     handler: executeCommand
   })
 
@@ -54,21 +54,21 @@ yargs()
     },
     data: {
       alias: "d",
+      default: "data.yml",
       describe: "Path to YAML data file",
-      type: "string",
-      default: "data.yml"
-    },
-    template: {
-      alias: "t",
-      describe: "Path to Liquid template file",
-      type: "string",
-      default: "template.liquid"
+      type: "string"
     },
     output: {
       alias: "o",
+      default: "output.pdf",
       describe: "Path to PDF output file",
-      type: "string",
-      default: "output.pdf"
+      type: "string"
+    },
+    template: {
+      alias: "t",
+      default: "template.liquid",
+      describe: "Path to Liquid template file",
+      type: "string"
     }
   })
 

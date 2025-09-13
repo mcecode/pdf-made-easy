@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import nodePath from "node:path";
 
-import watcher from "@parcel/watcher";
 import { Liquid } from "liquidjs";
 import puppeteer from "puppeteer";
+import watcher from "@parcel/watcher";
 import YAML from "yaml";
 
 /**
@@ -12,15 +12,19 @@ import YAML from "yaml";
  * @typedef {import("yargs").Argv} Argv
  *
  * @typedef {import("./index.d.ts").PMEUserConfig} PMEUserConfig
- *
+ */
+
+/**
  * @typedef Builder
  *   Contains methods for rendering PDF files from data and template files.
- * @property {(args: BuildOptions) => Promise<void>} build
+ * @property {() => Promise<void>} build
  *   Outputs a PDF file using data and template files.
  * @property {() => Promise<void>} close
- *   Disposes all resources instantiated and turns {@link Builder.build} and
- *   {@link Builder.close} into NOOP methods.
- *
+ *   Disposes all resources instantiated and turns {@link Builder.build} into a
+ *   NOOP method.
+ */
+
+/**
  * @typedef BuildOptions
  * @property {string} data
  *   Path to YAML data file.
@@ -30,7 +34,9 @@ import YAML from "yaml";
  *   Path to PDF output file.
  * @property {PMEUserConfig} options
  *   Options passed down to Liquid and Puppeteer.
- *
+ */
+
+/**
  * @typedef CLIOptions
  * @property {string} data
  *   Path to YAML data file.
@@ -76,8 +82,14 @@ export async function executeCommand(args) {
     // TODO: Handle calling develop's cleanup function on exit.
     // https://stackoverflow.com/questions/20165605/detecting-ctrlc-in-node-js
     await (command === "build" ? build : develop)({ ...args, options });
-  } catch ({ message }) {
-    console.error(`Error: ${message}`);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message}`);
+      return;
+    }
+
+    console.error("Encountered unknown error:");
+    console.error(error);
   }
 }
 
@@ -92,7 +104,7 @@ export async function executeCommand(args) {
  */
 async function loadConfig(path) {
   if (
-    typeof path !== "undefined" &&
+    path !== undefined &&
     ![".js", ".mjs", ".cjs"].includes(nodePath.extname(path))
   ) {
     throw new Error(
@@ -101,23 +113,31 @@ async function loadConfig(path) {
     );
   }
 
-  if (typeof path !== "undefined") {
+  if (path !== undefined) {
     const config = absolutizePath(path);
     const mod = await tryToImportConfig(config);
 
+    if (mod instanceof TypeError) {
+      throw mod;
+    }
+
     if (mod instanceof Error) {
-      throw new Error(`Config file '${config}' does not exist`);
+      // This error isn't thrown because of a type error but because the config
+      // couldn't be imported.
+      throw new Error(`Config file '${config}' could not be imported`);
     }
 
     return mod.default;
   }
 
-  for (const config of [
-    absolutizePath("pme.config.js"),
-    absolutizePath("pme.config.mjs"),
-    absolutizePath("pme.config.cjs")
-  ]) {
-    const mod = await tryToImportConfig(config);
+  for (const mod of await Promise.all([
+    tryToImportConfig(absolutizePath("pme.config.js")),
+    tryToImportConfig(absolutizePath("pme.config.mjs")),
+    tryToImportConfig(absolutizePath("pme.config.cjs"))
+  ])) {
+    if (mod instanceof TypeError) {
+      throw mod;
+    }
 
     if (mod instanceof Error) {
       continue;
@@ -132,36 +152,43 @@ async function loadConfig(path) {
 /**
  * Tries to import and return the config found in `path` while checking if its
  * default export is an object or not. Returns an `Error` if no module is found
- * in `path`.
+ * in `path` or a `TypeError` if the module's default export is not an object.
  *
  * @param {string} path
  *
- * @returns {Promise<{ default: object }>}
+ * @returns {Promise<Error | TypeError | { default: object }>}
  */
 async function tryToImportConfig(path) {
   try {
+    // There's no going around the fact that `import`ing like this is unsafe.
+    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    /* eslint-disable @typescript-eslint/no-unsafe-return */
+
     const mod = await import(path);
 
-    if (typeof mod.default !== "object") {
+    if (typeof mod?.default !== "object") {
       throw new TypeError(
         "Config file should have an object default export, " +
-          `found '${typeof mod.default}'`
+          `found '${typeof mod?.default}'`
       );
     }
 
-    if (mod.default === null) {
+    if (mod?.default === null) {
       throw new TypeError(
         "Config file should have an object default export, found 'null'"
       );
     }
 
     return mod;
-  } catch (error) {
-    if (error.code === "ERR_MODULE_NOT_FOUND") {
-      return error;
-    }
 
-    throw error;
+    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+    /* eslint-enable @typescript-eslint/no-unsafe-return */
+  } catch (error) {
+    // @ts-expect-error - This can either be an `ERR_MODULE_NOT_FOUND` `Error`
+    // if `import` fails or a `TypeError` if `mod.default` is not an `object`.
+    return error;
   }
 }
 
@@ -174,11 +201,12 @@ async function tryToImportConfig(path) {
  * @returns {Promise<void>}
  */
 async function build(args) {
+  /** @type {Builder | undefined} */
   let builder;
 
   try {
-    builder = await getBuilder();
-    await builder.build(args);
+    builder = await getBuilder(args);
+    await builder.build();
   } finally {
     await builder?.close();
   }
@@ -194,7 +222,9 @@ async function build(args) {
  *   A cleanup function that disposes all resources instantiated.
  */
 async function develop(args) {
+  /** @type {Builder | undefined} */
   let builder;
+  /** @type {watcher.AsyncSubscription | undefined} */
   let subscription;
 
   try {
@@ -203,16 +233,18 @@ async function develop(args) {
       absolutizePath(args.template)
     ];
 
-    for (const pathToWatch of pathsToWatch) {
-      try {
-        await fs.access(pathToWatch);
-      } catch {
-        throw new Error(`'${pathToWatch}' does not exist.`);
+    for (const pathToWatch of await Promise.allSettled(
+      pathsToWatch.map(async (p) => fs.access(p))
+    )) {
+      if (pathToWatch.status === "rejected") {
+        // Path exists here as a string since `fs.access` threw an error.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        throw new Error(pathToWatch.reason?.path + " does not exist");
       }
     }
 
-    builder = await getBuilder();
-    await builder.build(args);
+    builder = await getBuilder(args);
+    await builder.build();
 
     subscription = await watcher.subscribe(
       process.cwd(),
@@ -223,12 +255,12 @@ async function develop(args) {
 
         const match = events.find(({ path }) => pathsToWatch.includes(path));
 
-        if (typeof match === "undefined" || match.type !== "update") {
+        if (match === undefined || match.type !== "update") {
           return;
         }
 
         try {
-          await builder.build(args);
+          await builder?.build();
         } catch (error) {
           // TODO: Fix
           // These are the downstream error messages thrown due to the
@@ -236,8 +268,9 @@ async function develop(args) {
           // used together with `@parcel/watcher`. They are disregarded for now
           // until a better solution can be made.
           if (
+            error instanceof Error &&
             error.message ===
-            "'data' must be an object or undefined, given 'null'"
+              "'data' must be an object or undefined, given 'null'"
           ) {
             return;
           }
@@ -248,8 +281,8 @@ async function develop(args) {
     );
 
     return async () => {
-      await subscription.unsubscribe();
-      await builder.close();
+      await subscription?.unsubscribe();
+      await builder?.close();
     };
   } catch (error) {
     await subscription?.unsubscribe();
@@ -262,25 +295,27 @@ async function develop(args) {
  * Instantiates resources needed for PDF generation then returns a
  * {@link Builder} object.
  *
+ * @param {BuildOptions} args
+ *
  * @returns {Promise<Builder>}
  */
-async function getBuilder() {
-  let isClosed = false;
-  /** @type {Liquid | null} */
-  let liquid = null;
-  /** @type {Browser | null} */
-  let browser = null;
-  /** @type {Page | null} */
-  let page = null;
+async function getBuilder({ data, template, output, options }) {
+  /** @type {Liquid | undefined} */
+  let liquid = new Liquid(options.liquidOptions);
+  /** @type {Browser | undefined} */
+  let browser = await puppeteer.launch(options.launchOptions);
+  /** @type {Page | undefined} */
+  let page = await browser.newPage();
 
   return {
-    async build({ data, template, output, options }) {
-      if (isClosed) {
+    async build() {
+      if (liquid === undefined || browser === undefined || page === undefined) {
         return;
       }
 
       // Get template
       const templateFile = absolutizePath(template);
+      /** @type {string} */
       let templateContents;
       try {
         templateContents = await fs.readFile(templateFile, "utf-8");
@@ -296,16 +331,16 @@ async function getBuilder() {
         throw new Error(`Only YAML format is accepted, given '${dataExt}'`);
       }
 
+      /** @type {object | undefined | null} */
       let dataContents;
       try {
+        // No going around `YAML.parse` returning an `any` type.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         dataContents = YAML.parse(await fs.readFile(dataFile, "utf-8"));
       } catch {
         throw new Error(`Data file '${dataFile}' does not exist`);
       }
-      if (
-        typeof dataContents !== "object" &&
-        typeof dataContents !== "undefined"
-      ) {
+      if (dataContents !== undefined && typeof dataContents !== "object") {
         throw new TypeError(
           "'data' must be an object or undefined, given " +
             `'${typeof dataContents}'`
@@ -322,40 +357,32 @@ async function getBuilder() {
       await fs.mkdir(nodePath.dirname(outputFile), { recursive: true });
 
       // Render HTML from template and data
-      if (liquid === null) {
-        liquid = new Liquid(options.liquidOptions);
-      }
       const encodedHtml =
         "data:text/html," +
         encodeURIComponent(
+          // No going around `liquid.parseAndRender` returning an `any` type.
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           await liquid.parseAndRender(templateContents, dataContents)
         );
 
       // Render PDF from HTML
-      if (browser === null) {
-        browser = await puppeteer.launch(options.puppeteerLaunchOptions);
-      }
-      if (page === null) {
-        page = await browser.newPage();
-      }
       await page.goto(encodedHtml);
       await fs.writeFile(outputFile, await page.pdf(options.pdfOptions));
     },
     async close() {
-      if (isClosed) {
-        return;
-      }
+      liquid = undefined;
 
-      liquid = null;
+      // These reassignments shouldn't cause any problems as long as `build`
+      // and `close` are `await`ed properly.
+      /* eslint-disable require-atomic-updates */
 
       await page?.close();
-      page = null;
+      page = undefined;
 
       await browser?.close();
-      browser = null;
+      browser = undefined;
 
-      // 'isClosed' is meant to only be reassigned here and nowhere else.
-      isClosed = true;
+      /* eslint-enable require-atomic-updates */
     }
   };
 }
