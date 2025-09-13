@@ -1,37 +1,37 @@
 {
-  "compilerOptions": {
-    // Type checking
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true,
-    "strict": true,
+	"compilerOptions": {
+		// Type checking
+		"exactOptionalPropertyTypes": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": true,
+		"strict": true,
 
-    // Module
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "noUncheckedSideEffectImports": true,
-    // "paths": {},
-    "resolveJsonModule": true,
-    "rewriteRelativeImportExtensions": true,
-    // "types": [],
+		// Module
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"noUncheckedSideEffectImports": true,
+		// "paths": {},
+		"resolveJsonModule": true,
+		"rewriteRelativeImportExtensions": true,
+		// "types": [],
 
-    // Emit
-    "noEmit": true,
+		// Emit
+		"noEmit": true,
 
-    // JavaScript support
-    "checkJs": true,
+		// JavaScript support
+		"checkJs": true,
 
-    // Interop constraints
-    "verbatimModuleSyntax": true,
+		// Interop constraints
+		"verbatimModuleSyntax": true,
 
-    // Language and environment
-    "lib": [
-      "ESNext",
-      // For Puppeteer
-      "DOM"
-    ]
-  },
-  "include": ["**/*"]
+		// Language and environment
+		"lib": [
+			"ESNext",
+			// For Puppeteer
+			"DOM"
+		]
+	},
+	"include": ["**/*"]
 }

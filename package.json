@@ -1,59 +1,59 @@
 {
-  "name": "pdf-made-easy",
-  "version": "0.2.0",
-  "type": "module",
-  "license": "Apache-2.0",
-  "author": "Matthew Espino",
-  "description": "A CLI application and library for developing and creating PDF documents.",
-  "keywords": [
-    "cli",
-    "yaml",
-    "template",
-    "liquid",
-    "html",
-    "puppeteer",
-    "pdf",
-    "document"
-  ],
-  "homepage": "https://github.com/mcecode/pdf-made-easy#readme",
-  "bugs": "https://github.com/mcecode/pdf-made-easy/issues",
-  "repository": "mcecode/pdf-made-easy",
-  "files": [
-    "./*.js",
-    "./*.d.ts",
-    "./CHANGELOG.md"
-  ],
-  "exports": "./index.js",
-  "types": "./index.d.ts",
-  "bin": {
-    "pme": "./cli.js"
-  },
-  "engines": {
-    "node": ">=16.19 <17 || >=18"
-  },
-  "scripts": {
-    "format": "prettier --write .",
-    "lint": "tsc && eslint && prettier --check .",
-    "test": "sh ./test.sh"
-  },
-  "dependencies": {
-    "@parcel/watcher": "^2.4.0",
-    "liquidjs": "^10.15.0",
-    "puppeteer": "^24.18.0",
-    "yaml": "^2.4.5",
-    "yargs": "^18.0.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.35.0",
-    "@types/yargs": "^17.0.33",
-    "eslint": "^9.35.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-jsdoc": "^56.0.2",
-    "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-unicorn": "^61.0.2",
-    "globals": "^16.4.0",
-    "prettier": "3.6.2",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.43.0"
-  }
+	"name": "pdf-made-easy",
+	"version": "0.2.0",
+	"type": "module",
+	"license": "Apache-2.0",
+	"author": "Matthew Espino",
+	"description": "A CLI application and library for developing and creating PDF documents.",
+	"keywords": [
+		"cli",
+		"yaml",
+		"template",
+		"liquid",
+		"html",
+		"puppeteer",
+		"pdf",
+		"document"
+	],
+	"homepage": "https://github.com/mcecode/pdf-made-easy#readme",
+	"bugs": "https://github.com/mcecode/pdf-made-easy/issues",
+	"repository": "mcecode/pdf-made-easy",
+	"files": [
+		"./*.js",
+		"./*.d.ts",
+		"./CHANGELOG.md"
+	],
+	"exports": "./index.js",
+	"types": "./index.d.ts",
+	"bin": {
+		"pme": "./cli.js"
+	},
+	"engines": {
+		"node": ">=16.19 <17 || >=18"
+	},
+	"scripts": {
+		"format": "prettier --write .",
+		"lint": "tsc && eslint && prettier --check .",
+		"test": "sh ./test.sh"
+	},
+	"dependencies": {
+		"@parcel/watcher": "^2.4.0",
+		"liquidjs": "^10.15.0",
+		"puppeteer": "^24.18.0",
+		"yaml": "^2.4.5",
+		"yargs": "^18.0.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.35.0",
+		"@types/yargs": "^17.0.33",
+		"eslint": "^9.35.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-jsdoc": "^56.0.2",
+		"eslint-plugin-promise": "^7.2.1",
+		"eslint-plugin-unicorn": "^61.0.2",
+		"globals": "^16.4.0",
+		"prettier": "3.6.2",
+		"typescript": "^5.9.2",
+		"typescript-eslint": "^8.43.0"
+	}
 }

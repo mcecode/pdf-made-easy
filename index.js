@@ -31,14 +31,14 @@ const validKeys = ["launchOptions", "liquidOptions", "pdfOptions"];
  * @returns {PMEUserConfig}
  */
 export function defineConfig(config) {
-  if (Object.prototype.toString.call(config) !== "[object Object]") {
-    throw new TypeError("invalid config provided");
-  }
+	if (Object.prototype.toString.call(config) !== "[object Object]") {
+		throw new TypeError("invalid config provided");
+	}
 
-  const keys = Object.keys(config);
-  if (new Set([...validKeys, ...keys]).size > validKeys.length) {
-    throw new TypeError("invalid config key provided");
-  }
+	const keys = Object.keys(config);
+	if (new Set([...validKeys, ...keys]).size > validKeys.length) {
+		throw new TypeError("invalid config key provided");
+	}
 
-  return config;
+	return config;
 }
