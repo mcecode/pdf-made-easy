@@ -7,11 +7,11 @@ import watcher from "@parcel/watcher";
 import YAML from "yaml";
 
 /**
+ * @typedef {import("yargs").Argv} Argv
  * @typedef {import("puppeteer").Browser} Browser
  * @typedef {import("puppeteer").Page} Page
- * @typedef {import("yargs").Argv} Argv
  *
- * @typedef {import("./index.d.ts").PMEUserConfig} PMEUserConfig
+ * @typedef {import("./index.js").PMEUserConfig} PMEUserConfig
  */
 
 /**
@@ -122,8 +122,6 @@ async function loadConfig(path) {
     }
 
     if (mod instanceof Error) {
-      // This error isn't thrown because of a type error but because the config
-      // couldn't be imported.
       throw new Error(`Config file '${config}' could not be imported`);
     }
 
