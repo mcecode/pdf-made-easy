@@ -28,24 +28,24 @@ import YAML from "yaml";
  * @typedef BuildOptions
  * @property {string} data
  *   Path to YAML data file.
- * @property {string} template
- *   Path to Liquid template file.
- * @property {string} output
- *   Path to PDF output file.
  * @property {PMEUserConfig} options
  *   Options passed down to Liquid and Puppeteer.
+ * @property {string} output
+ *   Path to PDF output file.
+ * @property {string} template
+ *   Path to Liquid template file.
  */
 
 /**
  * @typedef CLIOptions
- * @property {string} data
- *   Path to YAML data file.
- * @property {string} template
- *   Path to Liquid template file.
- * @property {string} output
- *   Path to PDF output file.
  * @property {string} config
  *   Path to JavaScript config file.
+ * @property {string} data
+ *   Path to YAML data file.
+ * @property {string} output
+ *   Path to PDF output file.
+ * @property {string} template
+ *   Path to Liquid template file.
  */
 
 // TODO: Improve error messages.
@@ -78,11 +78,25 @@ export async function executeCommand(args) {
 	try {
 		const options = await loadConfig(config);
 
-		// Execute command
-		// TODO: Handle calling develop's cleanup function on exit.
-		// https://stackoverflow.com/questions/20165605/detecting-ctrlc-in-node-js
-		await (command === "build" ? buildPDF : developPDF)({ ...args, options });
+		const cleanup = await (command === "build" ? buildPDF : developPDF)({
+			...args,
+			options,
+		});
+		if (typeof cleanup === "function") {
+			for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"]) {
+				// This is the only way I found to try and clean up properly before the
+				// process terminates.
+				// eslint-disable-next-line @typescript-eslint/no-misused-promises
+				process.on(signal, async () => {
+					await cleanup();
+					process.exitCode = 0;
+					process.exit();
+				});
+			}
+		}
 	} catch (error) {
+		process.exitCode = 1;
+
 		if (error instanceof Error) {
 			console.error(`Error: ${error.message}`);
 			return;
@@ -297,11 +311,16 @@ async function developPDF(args) {
  *
  * @returns {Promise<PDFBuilder>}
  */
-async function getPDFBuilder({ data, template, output, options }) {
+async function getPDFBuilder({ data, options, output, template }) {
 	/** @type {Liquid | undefined} */
 	let liquid = new Liquid(options.liquidOptions);
 	/** @type {Browser | undefined} */
-	let browser = await puppeteer.launch(options.launchOptions);
+	let browser = await puppeteer.launch({
+		...options.launchOptions,
+		handleSIGHUP: false,
+		handleSIGINT: false,
+		handleSIGTERM: false,
+	});
 	/** @type {Page | undefined} */
 	let page = await browser.newPage();
 
