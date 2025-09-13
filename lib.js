@@ -15,13 +15,13 @@ import YAML from "yaml";
  */
 
 /**
- * @typedef Builder
+ * @typedef PDFBuilder
  *   Contains methods for rendering PDF files from data and template files.
  * @property {() => Promise<void>} build
  *   Outputs a PDF file using data and template files.
  * @property {() => Promise<void>} close
- *   Disposes all resources instantiated and turns {@link Builder.build} into a
- *   NOOP method.
+ *   Disposes all resources instantiated and turns {@link PDFBuilder.build} into
+ *   a NOOP method.
  */
 
 /**
@@ -57,7 +57,7 @@ import YAML from "yaml";
  *
  * @returns {Argv}
  */
-export function buildNonDefaultCommand(yargs) {
+export function createNonDefaultCommand(yargs) {
 	return yargs.version(false);
 }
 
@@ -81,7 +81,7 @@ export async function executeCommand(args) {
 		// Execute command
 		// TODO: Handle calling develop's cleanup function on exit.
 		// https://stackoverflow.com/questions/20165605/detecting-ctrlc-in-node-js
-		await (command === "build" ? build : develop)({ ...args, options });
+		await (command === "build" ? buildPDF : developPDF)({ ...args, options });
 	} catch (error) {
 		if (error instanceof Error) {
 			console.error(`Error: ${error.message}`);
@@ -198,12 +198,12 @@ async function tryToImportConfig(path) {
  *
  * @returns {Promise<void>}
  */
-async function build(args) {
-	/** @type {Builder | undefined} */
+async function buildPDF(args) {
+	/** @type {PDFBuilder | undefined} */
 	let builder;
 
 	try {
-		builder = await getBuilder(args);
+		builder = await getPDFBuilder(args);
 		await builder.build();
 	} finally {
 		await builder?.close();
@@ -219,8 +219,8 @@ async function build(args) {
  * @returns {Promise<() => Promise<void>>}
  *   A cleanup function that disposes all resources instantiated.
  */
-async function develop(args) {
-	/** @type {Builder | undefined} */
+async function developPDF(args) {
+	/** @type {PDFBuilder | undefined} */
 	let builder;
 	/** @type {watcher.AsyncSubscription | undefined} */
 	let subscription;
@@ -241,7 +241,7 @@ async function develop(args) {
 			}
 		}
 
-		builder = await getBuilder(args);
+		builder = await getPDFBuilder(args);
 		await builder.build();
 
 		subscription = await watcher.subscribe(
@@ -291,13 +291,13 @@ async function develop(args) {
 
 /**
  * Instantiates resources needed for PDF generation then returns a
- * {@link Builder} object.
+ * {@link PDFBuilder} object.
  *
  * @param {BuildOptions} args
  *
- * @returns {Promise<Builder>}
+ * @returns {Promise<PDFBuilder>}
  */
-async function getBuilder({ data, template, output, options }) {
+async function getPDFBuilder({ data, template, output, options }) {
 	/** @type {Liquid | undefined} */
 	let liquid = new Liquid(options.liquidOptions);
 	/** @type {Browser | undefined} */
@@ -355,7 +355,7 @@ async function getBuilder({ data, template, output, options }) {
 			await fs.mkdir(nodePath.dirname(outputFile), { recursive: true });
 
 			// Render HTML from template and data
-			const encodedHtml =
+			const encodedHTML =
 				"data:text/html," +
 				encodeURIComponent(
 					// No going around `liquid.parseAndRender` returning an `any` type.
@@ -364,7 +364,7 @@ async function getBuilder({ data, template, output, options }) {
 				);
 
 			// Render PDF from HTML
-			await page.goto(encodedHtml);
+			await page.goto(encodedHTML);
 			await fs.writeFile(outputFile, await page.pdf(options.pdfOptions));
 		},
 		async close() {
