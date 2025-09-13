@@ -7,7 +7,7 @@ This project adheres to the
 
 ### ⚠️ Breaking
 
-- **This package no longer exports any functions and is now CLI only.**
+- **This package no longer exports any library functions and is now CLI only.**
 - This package now only exports one type, `PMEUserConfig`, formerly `PMEConfig`.
 - Walking up parent directories to find the default config file is no longer
   supported.
@@ -22,7 +22,9 @@ This project adheres to the
   via the `--config` or `-c` flag, it will now try to find `pme.config.js`,
   `pme.config.mjs`, and `pme.config.cjs` in the current working directory, in
   that order.
-- `launchOptions` can now be set in the config file.
+- A helper for defining config objects, `defineConfig`, is now exported.
+- `launchOptions` for Puppeteer when it launches a browser instance can now be
+  set in the config.
 
 ## 0.2.0 - February 01, 2023
 
