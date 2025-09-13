@@ -15,6 +15,10 @@ await yargs()
 		"populate--": true,
 		"strip-aliased": true,
 		"strip-dashed": true,
+
+		// In preparation for yargs version 19, see:
+		// https://github.com/yargs/yargs-parser/pull/516
+		"greedy-arrays": true,
 	})
 	.showHelpOnFail(false)
 	.recommendCommands()
