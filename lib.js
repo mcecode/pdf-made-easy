@@ -77,32 +77,47 @@ export async function executeCommand(args) {
 
 	try {
 		const options = await loadConfig(config);
-
 		const cleanup = await (command === "build" ? buildPDF : developPDF)({
 			...args,
 			options,
 		});
-		if (typeof cleanup === "function") {
-			for (const signal of ["SIGHUP", "SIGINT", "SIGTERM"]) {
-				// This is the only way I found to try and clean up properly before the
-				// process terminates.
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				process.on(signal, async () => {
-					await cleanup();
+
+		for (const event of [
+			"SIGHUP",
+			"SIGINT",
+			"SIGTERM",
+			"uncaughtException",
+			"unhandledRejection",
+		]) {
+			// The use of an async handler here is fine, only the `exit` event
+			// requires its handler to be synchronous.
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			process.on(event, async (error, origin) => {
+				try {
+					await cleanup?.();
+				} catch {
+					// Can't do anything anymore at this point if `cleanup` throws.
+				}
+
+				if (error instanceof Error && origin !== undefined) {
+					process.exitCode = 1;
+
+					console.error(
+						"Error encountered:",
+						typeof origin === "string" ? origin : "unhandledRejection",
+						"\n",
+					);
+					console.error(error);
+				} else {
 					process.exitCode = 0;
-					process.exit();
-				});
-			}
+				}
+
+				process.exit();
+			});
 		}
 	} catch (error) {
 		process.exitCode = 1;
-
-		if (error instanceof Error) {
-			console.error(`Error: ${error.message}`);
-			return;
-		}
-
-		console.error("Encountered unknown error:");
+		console.error("Error encountered:\n");
 		console.error(error);
 	}
 }
@@ -129,33 +144,33 @@ async function loadConfig(path) {
 
 	if (path !== undefined) {
 		const config = absolutizePath(path);
-		const mod = await tryToImportConfig(config);
+		const moduleOrError = await tryToImportConfig(config);
 
-		if (mod instanceof TypeError) {
-			throw mod;
+		if (moduleOrError instanceof TypeError) {
+			throw moduleOrError;
 		}
 
-		if (mod instanceof Error) {
+		if (moduleOrError instanceof Error) {
 			throw new Error(`Config file '${config}' could not be imported`);
 		}
 
-		return mod.default;
+		return moduleOrError.default;
 	}
 
-	for (const mod of await Promise.all([
+	for (const moduleOrError of await Promise.all([
 		tryToImportConfig(absolutizePath("pme.config.js")),
 		tryToImportConfig(absolutizePath("pme.config.mjs")),
 		tryToImportConfig(absolutizePath("pme.config.cjs")),
 	])) {
-		if (mod instanceof TypeError) {
-			throw mod;
+		if (moduleOrError instanceof TypeError) {
+			throw moduleOrError;
 		}
 
-		if (mod instanceof Error) {
+		if (moduleOrError instanceof Error) {
 			continue;
 		}
 
-		return mod.default;
+		return moduleOrError.default;
 	}
 
 	return {};
@@ -261,33 +276,31 @@ async function developPDF(args) {
 		subscription = await watcher.subscribe(
 			process.cwd(),
 			async (watcherError, events) => {
-				if (watcherError !== null) {
-					throw watcherError;
-				}
-
-				const match = events.find(({ path }) => pathsToWatch.includes(path));
-
-				if (match === undefined || match.type !== "update") {
-					return;
-				}
-
 				try {
-					await builder?.build();
-				} catch (error) {
-					// TODO: Fix
-					// These are the downstream error messages thrown due to the
-					// `fs.readFile` in `getData` sometimes returning an empty string when
-					// used together with `@parcel/watcher`. They are disregarded for now
-					// until a better solution can be made.
-					if (
-						error instanceof Error &&
-						error.message ===
-							"'data' must be an object or undefined, given 'null'"
-					) {
+					if (watcherError !== null) {
+						throw watcherError;
+					}
+
+					const match = events.find(({ path }) => pathsToWatch.includes(path));
+
+					if (match === undefined || match.type !== "update") {
 						return;
 					}
 
-					throw error;
+					await builder?.build();
+				} catch (error) {
+					try {
+						await subscription?.unsubscribe();
+						await builder?.close();
+					} catch {
+						// This will become an `unhandledRejection` if not caught here. What
+						// should be reported is the root cause, not the failure to clean up
+						// after it.
+					}
+
+					process.exitCode = 1;
+					console.error("Error encountered:\n");
+					console.error(error);
 				}
 			},
 		);
@@ -320,6 +333,7 @@ async function getPDFBuilder({ data, options, output, template }) {
 		handleSIGHUP: false,
 		handleSIGINT: false,
 		handleSIGTERM: false,
+		headless: true,
 	});
 	/** @type {Page | undefined} */
 	let page = await browser.newPage();
@@ -342,12 +356,10 @@ async function getPDFBuilder({ data, options, output, template }) {
 
 			// Get data
 			const dataFile = absolutizePath(data);
-
 			const dataExt = nodePath.extname(dataFile);
 			if (![".yml", ".yaml"].includes(dataExt)) {
 				throw new Error(`Only YAML format is accepted, given '${dataExt}'`);
 			}
-
 			/** @type {object | undefined | null} */
 			let dataContents;
 			try {
@@ -373,17 +385,12 @@ async function getPDFBuilder({ data, options, output, template }) {
 			const outputFile = absolutizePath(output);
 			await fs.mkdir(nodePath.dirname(outputFile), { recursive: true });
 
-			// Render HTML from template and data
-			const encodedHTML =
-				"data:text/html," +
-				encodeURIComponent(
-					// No going around `liquid.parseAndRender` returning an `any` type.
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-					await liquid.parseAndRender(templateContents, dataContents),
-				);
-
-			// Render PDF from HTML
-			await page.goto(encodedHTML);
+			// Render PDF from rendered HTML
+			await page.setContent(
+				// No going around `liquid.parseAndRender` returning an `any` type.
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				await liquid.parseAndRender(templateContents, dataContents),
+			);
 			await fs.writeFile(outputFile, await page.pdf(options.pdfOptions));
 		},
 		async close() {

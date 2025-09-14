@@ -53,6 +53,7 @@ export default defineConfig([
 			"no-console": "off",
 			"no-continue": "off",
 			"no-else-return": ["error", { allowElseIf: false }],
+			"no-plusplus": "off",
 			"no-ternary": "off",
 			"no-undefined": "off",
 			"no-unexpected-multiline": "error",
