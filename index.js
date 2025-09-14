@@ -37,7 +37,7 @@ export function defineConfig(config) {
 
 	const keys = Object.keys(config);
 	if (new Set([...validKeys, ...keys]).size > validKeys.length) {
-		throw new TypeError("invalid config key provided");
+		throw new TypeError("invalid config keys provided");
 	}
 
 	return config;

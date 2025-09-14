@@ -34,7 +34,7 @@
 	"scripts": {
 		"format": "prettier --write .",
 		"lint": "tsc && eslint && prettier --check .",
-		"test": "sh ./test.sh"
+		"test": "node test/test.js"
 	},
 	"dependencies": {
 		"chokidar": "^4.0.3",
