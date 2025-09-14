@@ -49,8 +49,6 @@ import YAML from "yaml";
  *   Path to Liquid template file.
  */
 
-// TODO: Improve error messages.
-
 /**
  * Disables the version option for non-default commands.
  *
@@ -63,7 +61,7 @@ export function createNonDefaultCommand(yargs) {
 }
 
 /**
- * Handles loading the config file and executing the correct command based on
+ * Handles loading the config file and executing the correct command using
  * `args`.
  *
  * @param {import("yargs").ArgumentsCamelCase<CLIOptions>} args
@@ -97,29 +95,25 @@ export async function executeCommand(args) {
 				try {
 					await cleanup?.();
 				} catch {
-					// Can't do anything anymore at this point if `cleanup` throws.
+					// Can't do anything anymore at this point if `cleanup` rejects.
 				}
 
+				// For error events
 				if (error instanceof Error && origin !== undefined) {
-					process.exitCode = 1;
-
-					console.error(
-						"Error encountered:",
+					printErrorThenExit(
+						error,
 						typeof origin === "string" ? origin : "unhandledRejection",
-						"\n",
 					);
-					console.error(error);
-				} else {
-					process.exitCode = 0;
+					return;
 				}
 
+				// For signals
+				process.exitCode = 0;
 				process.exit();
 			});
 		}
 	} catch (error) {
-		process.exitCode = 1;
-		console.error("Error encountered:\n");
-		console.error(error);
+		printErrorThenExit(error, "Global Catch");
 	}
 }
 
@@ -137,10 +131,7 @@ async function loadConfig(path) {
 		path !== undefined &&
 		![".js", ".mjs", ".cjs"].includes(nodePath.extname(path))
 	) {
-		throw new Error(
-			"Config file must be a JavaScript file, " +
-				`'${nodePath.basename(path)}' given`,
-		);
+		throw new Error("config file must be a JavaScript file, given " + path);
 	}
 
 	if (path !== undefined) {
@@ -152,7 +143,7 @@ async function loadConfig(path) {
 		}
 
 		if (moduleOrError instanceof Error) {
-			throw new Error(`Config file '${config}' could not be imported`);
+			throw new Error("could not import config at " + config);
 		}
 
 		return moduleOrError.default;
@@ -195,17 +186,8 @@ async function tryToImportConfig(path) {
 
 		const mod = await import(path);
 
-		if (typeof mod?.default !== "object") {
-			throw new TypeError(
-				"Config file should have an object default export, " +
-					`found '${typeof mod?.default}'`,
-			);
-		}
-
-		if (mod?.default === null) {
-			throw new TypeError(
-				"Config file should have an object default export, found 'null'",
-			);
+		if (Object.prototype.toString.call(mod?.default) !== "[object Object]") {
+			throw new TypeError("config's default export must be an object");
 		}
 
 		return mod;
@@ -215,7 +197,7 @@ async function tryToImportConfig(path) {
 		/* eslint-enable @typescript-eslint/no-unsafe-return */
 	} catch (error) {
 		// @ts-expect-error - This can either be an `ERR_MODULE_NOT_FOUND` `Error`
-		// if `import` fails or a `TypeError` if `mod.default` is not an `object`.
+		// if `import` fails or a `TypeError` if `mod.default` is not an object.
 		return error;
 	}
 }
@@ -269,15 +251,11 @@ async function developPDF(args) {
 				try {
 					await builder?.build();
 				} catch (error) {
-					process.exitCode = 1;
-					console.error("Error encountered:\n");
-					console.error(error);
+					printErrorThenExit(error, "Builder (Likely Puppeteer)");
 				}
 			})
 			.on("error", (error) => {
-				process.exitCode = 1;
-				console.error("Error encountered:\n");
-				console.error(error);
+				printErrorThenExit(error, "Watcher");
 			});
 
 		return async () => {
@@ -321,39 +299,38 @@ async function getPDFBuilder({ data, options, output, template }) {
 
 			// Get template
 			const templateFile = absolutizePath(template);
+			if (nodePath.extname(templateFile) !== ".liquid") {
+				throw new Error(
+					"template file must be a Liquid file, given " + templateFile,
+				);
+			}
 			/** @type {string} */
 			let templateContents;
 			try {
 				templateContents = await fs.readFile(templateFile, "utf-8");
 			} catch {
-				throw new Error(`Template file '${templateFile}' does not exist`);
+				throw new Error("could not read template file at " + templateFile);
 			}
 
 			// Get data
 			const dataFile = absolutizePath(data);
-			const dataExt = nodePath.extname(dataFile);
-			if (![".yml", ".yaml"].includes(dataExt)) {
-				throw new Error(`Only YAML format is accepted, given '${dataExt}'`);
+			if (![".yml", ".yaml"].includes(nodePath.extname(dataFile))) {
+				throw new Error("data file must be a YAML file, given " + dataFile);
 			}
-			/** @type {object | undefined | null} */
+			/** @type {object | undefined} */
 			let dataContents;
 			try {
 				// No going around `YAML.parse` returning an `any` type.
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				dataContents = YAML.parse(await fs.readFile(dataFile, "utf-8"));
 			} catch {
-				throw new Error(`Data file '${dataFile}' does not exist`);
+				throw new Error("could not read and parse data file at " + dataFile);
 			}
-			if (dataContents !== undefined && typeof dataContents !== "object") {
-				throw new TypeError(
-					"'data' must be an object or undefined, given " +
-						`'${typeof dataContents}'`,
-				);
-			}
-			if (dataContents === null) {
-				throw new TypeError(
-					"'data' must be an object or undefined, given 'null'",
-				);
+			if (
+				dataContents !== undefined &&
+				Object.prototype.toString.call(dataContents) !== "[object Object]"
+			) {
+				throw new TypeError("data must be an object or undefined");
 			}
 
 			// Prepare output path
@@ -396,11 +373,25 @@ async function getPDFBuilder({ data, options, output, template }) {
  * @returns {string}
  */
 function absolutizePath(path) {
-	if (typeof path !== "string") {
-		throw new TypeError(`'path' must be a string, given '${typeof path}'`);
-	}
-
 	return nodePath.isAbsolute(path)
 		? nodePath.normalize(path)
 		: nodePath.join(process.cwd(), path);
+}
+
+/**
+ * Helper for handling thrown errors that can't or shouldn't be recovered from.
+ *
+ * @param {unknown} error
+ *
+ * @param {string} origin
+ */
+function printErrorThenExit(error, origin) {
+	console.error("Encountered Error!");
+	console.error("Origin:", origin);
+	console.error(error);
+
+	process.exitCode = 1;
+	// This is fine since this function is only called on unrecoverable errors.
+	// eslint-disable-next-line unicorn/no-process-exit
+	process.exit();
 }
