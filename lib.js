@@ -1,14 +1,15 @@
 import fs from "node:fs/promises";
 import nodePath from "node:path";
 
+import chokidar from "chokidar";
 import { Liquid } from "liquidjs";
 import puppeteer from "puppeteer";
-import watcher from "@parcel/watcher";
 import YAML from "yaml";
 
 /**
  * @typedef {import("yargs").Argv} Argv
  * @typedef {import("puppeteer").Browser} Browser
+ * @typedef {import("chokidar").FSWatcher} FSWatcher
  * @typedef {import("puppeteer").Page} Page
  *
  * @typedef {import("./index.js").PMEUserConfig} PMEUserConfig
@@ -251,66 +252,40 @@ async function buildPDF(args) {
 async function developPDF(args) {
 	/** @type {PDFBuilder | undefined} */
 	let builder;
-	/** @type {watcher.AsyncSubscription | undefined} */
-	let subscription;
+	/** @type {FSWatcher | undefined} */
+	let watcher;
 
 	try {
-		const pathsToWatch = [
-			absolutizePath(args.data),
-			absolutizePath(args.template),
-		];
-
-		for (const pathToWatch of await Promise.allSettled(
-			pathsToWatch.map(async (p) => fs.access(p)),
-		)) {
-			if (pathToWatch.status === "rejected") {
-				// Path exists here as a string since `fs.access` threw an error.
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-				throw new Error(pathToWatch.reason?.path + " does not exist");
-			}
-		}
-
 		builder = await getPDFBuilder(args);
 		await builder.build();
 
-		subscription = await watcher.subscribe(
-			process.cwd(),
-			async (watcherError, events) => {
+		watcher = chokidar
+			.watch([absolutizePath(args.data), absolutizePath(args.template)])
+			// TODO: Handle possible race conditions when events fire too close to
+			// each other (e.g., the data and template files are saved at the same
+			// time).
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			.on("change", async () => {
 				try {
-					if (watcherError !== null) {
-						throw watcherError;
-					}
-
-					const match = events.find(({ path }) => pathsToWatch.includes(path));
-
-					if (match === undefined || match.type !== "update") {
-						return;
-					}
-
 					await builder?.build();
 				} catch (error) {
-					try {
-						await subscription?.unsubscribe();
-						await builder?.close();
-					} catch {
-						// This will become an `unhandledRejection` if not caught here. What
-						// should be reported is the root cause, not the failure to clean up
-						// after it.
-					}
-
 					process.exitCode = 1;
 					console.error("Error encountered:\n");
 					console.error(error);
 				}
-			},
-		);
+			})
+			.on("error", (error) => {
+				process.exitCode = 1;
+				console.error("Error encountered:\n");
+				console.error(error);
+			});
 
 		return async () => {
-			await subscription?.unsubscribe();
+			await watcher?.close();
 			await builder?.close();
 		};
 	} catch (error) {
-		await subscription?.unsubscribe();
+		await watcher?.close();
 		await builder?.close();
 		throw error;
 	}
