@@ -286,7 +286,6 @@ async function getPDFBuilder({ data, options, output, template }) {
 		handleSIGHUP: false,
 		handleSIGINT: false,
 		handleSIGTERM: false,
-		headless: true,
 	});
 	/** @type {Page | undefined} */
 	let page = await browser.newPage();
@@ -343,7 +342,7 @@ async function getPDFBuilder({ data, options, output, template }) {
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				await liquid.parseAndRender(templateContents, dataContents),
 			);
-			await fs.writeFile(outputFile, await page.pdf(options.pdfOptions));
+			await page.pdf({ ...options.pdfOptions, path: outputFile });
 		},
 		async close() {
 			liquid = undefined;
