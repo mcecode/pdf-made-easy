@@ -3,7 +3,7 @@
 This project adheres to the
 [Semantic Versioning 2.0 Specification](https://semver.org).
 
-## Unreleased
+## 1.0.0 - September 16, 2025
 
 ### ⚠️ Breaking
 
@@ -14,7 +14,8 @@ This project adheres to the
 - Searching the user's home directory for the default config file is no longer
   supported.
 - JSON, JSONC, and JSON5 are no longer supported as data file formats.
-- Supplying a custom template renderer is no longer supported.
+- Supplying a custom template renderer is no longer supported, as such,
+  `templateOptions` is now `liquidOptions`.
 
 ### ✨ New
 
@@ -23,8 +24,8 @@ This project adheres to the
   `pme.config.mjs`, and `pme.config.cjs` in the current working directory, in
   that order.
 - A helper for defining config objects, `defineConfig`, is now exported.
-- `launchOptions` for Puppeteer when it launches a browser instance can now be
-  set in the config.
+- Launch options for Puppeteer when it launches a browser instance can now be
+  set via the `launchOptions` config.
 
 ## 0.2.0 - February 01, 2023
 

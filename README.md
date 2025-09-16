@@ -77,13 +77,13 @@ Examples:
 You may want to specify options to change the default behavior of the libraries
 that this CLI uses. For that, you can create a JavaScript config file that
 exports a config object at the current working directory where you will invoke
-`pme` or point to one using the `--config` flag. By default, `pme` will try to
-find `pme.config.js`, `pme.config.mjs`, and `pme.config.cjs` in the current
-working directory, in that order.
+`pme` or point to one using the `--config` or `-c` flag. By default, `pme` will
+try to find `pme.config.js`, `pme.config.mjs`, and `pme.config.cjs` in the
+current working directory, in that order.
 
 Let's say you don't want the Chrome instance Puppeteer will use to be sandboxed,
 you want to be notified when you don't set variables in your YAML config file
-that your Liquid template expects, and you want your PDF to be landscape. You
+that your Liquid template expects, and you want your PDF to be in landscape. You
 can create a `pme.config.mjs` with the following contents:
 
 ```js
@@ -107,8 +107,8 @@ for what other options you can set:
 
 **Note:** For `launchOptions`, `handleSIGHUP`, `handleSIGINT`, and
 `handleSIGTERM` are always set to `false` since `pme` handles those signals
-itself. When it comes to `pdfOptions`, `path` is always set to what is passed to
-the `--output` flag.
+itself. As for `pdfOptions`, `path` is always set to what is passed to the
+`--output` or `-o` flag.
 
 ## License
 

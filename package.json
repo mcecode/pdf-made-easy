@@ -1,10 +1,10 @@
 {
 	"name": "pdf-made-easy",
-	"version": "0.2.0",
+	"version": "1.0.0",
 	"type": "module",
 	"license": "Apache-2.0",
 	"author": "Matthew Espino",
-	"description": "A CLI application and library for developing and creating PDF documents.",
+	"description": "A CLI application for building and developing PDF documents.",
 	"keywords": [
 		"cli",
 		"yaml",
@@ -19,17 +19,17 @@
 	"bugs": "https://github.com/mcecode/pdf-made-easy/issues",
 	"repository": "mcecode/pdf-made-easy",
 	"files": [
-		"./*.js",
-		"./*.d.ts",
+		"./cli.js",
+		"./index.js",
+		"./lib.js",
 		"./CHANGELOG.md"
 	],
 	"exports": "./index.js",
-	"types": "./index.d.ts",
 	"bin": {
 		"pme": "./cli.js"
 	},
 	"engines": {
-		"node": ">=16.19 <17 || >=18"
+		"node": "^20 || ^22 || >=24"
 	},
 	"scripts": {
 		"format": "prettier --write .",
