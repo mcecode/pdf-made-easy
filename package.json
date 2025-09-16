@@ -17,7 +17,10 @@
 	],
 	"homepage": "https://github.com/mcecode/pdf-made-easy#readme",
 	"bugs": "https://github.com/mcecode/pdf-made-easy/issues",
-	"repository": "mcecode/pdf-made-easy",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mcecode/pdf-made-easy.git"
+	},
 	"files": [
 		"./cli.js",
 		"./index.js",
@@ -26,7 +29,7 @@
 	],
 	"exports": "./index.js",
 	"bin": {
-		"pme": "./cli.js"
+		"pme": "cli.js"
 	},
 	"engines": {
 		"node": "^20 || ^22 || >=24"
