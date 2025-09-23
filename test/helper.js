@@ -1,7 +1,28 @@
+import fs from "node:fs/promises";
+
 import { getDocument, ImageKind, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 /**
- * Extract info from the PDF in `path`. There are no guarantees as to what the
+ * If it exists, deletes the file in `path`.
+ *
+ * @param {string} path
+ *
+ * @returns {Promise<void>}
+ */
+export async function deleteFile(path) {
+	try {
+		await fs.rm(path);
+	} catch (error) {
+		if (error instanceof Error && error.message.includes("ENOENT")) {
+			return;
+		}
+
+		throw error;
+	}
+}
+
+/**
+ * Extracts info from the PDF in `path`. There are no guarantees as to what the
  * shape of the returned `contents` and `metadata` are, only that they should be
  * stable given the same inputs. Therefore, this function should only be used
  * for snapshots.
@@ -142,4 +163,35 @@ export async function getPDFInfo(path) {
 	await loadingTask.destroy();
 
 	return { contents, metadata };
+}
+
+/**
+ * Extracts the text from the PDF in `path`.
+ *
+ * @param {string} path
+ *
+ * @returns {Promise<string>}
+ */
+export async function getPDFText(path) {
+	const loadingTask = getDocument(path);
+	const document = await loadingTask.promise;
+	const page = await document.getPage(
+		// PDF fixtures should only have one page.
+		document.numPages,
+	);
+
+	let text = "";
+	for (const item of (await page.getTextContent()).items) {
+		if ("str" in item) {
+			text += item.str;
+		}
+
+		if ("hasEOL" in item && item.hasEOL) {
+			text += "\n";
+		}
+	}
+
+	await loadingTask.destroy();
+
+	return text;
 }

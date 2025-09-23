@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import cp from "node:child_process";
-import fs from "node:fs/promises";
 import path from "node:path";
 import util from "node:util";
-import { before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { defineConfig } from "../index.js";
-import { getPDFInfo } from "./helper.js";
+import { deleteFile, getPDFInfo, getPDFText } from "./helper.js";
 
 await describe("defineConfig", async () => {
 	await it("throws when config is not an object", () => {
@@ -47,39 +46,33 @@ await describe("defineConfig", async () => {
 });
 
 const testDir = import.meta.dirname;
-const outputFile = path.join(testDir, "fixtures", "output.pdf");
+const cliFile = path.join(path.dirname(testDir), "cli.js");
 const execFile = util.promisify(cp.execFile);
 
 await describe("cli.js", async () => {
-	before(async () => {
-		try {
-			await fs.access(outputFile);
-			await fs.rm(outputFile);
-		} catch (error) {
-			if (error instanceof Error && error.message.includes("ENOENT")) {
-				return;
-			}
+	await it("creates valid PDF file with correct info using no config", async (ctx) => {
+		const command = "build";
+		const type = "complex-input-no-config";
 
-			throw error;
-		}
+		const cwd = path.join(testDir, "fixtures", command, type);
+		const output = path.join(cwd, "output.pdf");
+		await deleteFile(output);
+
+		await execFile("node", [cliFile, command], { cwd });
+
+		ctx.assert.snapshot(await getPDFInfo(output));
 	});
 
-	await it("creates valid PDF file with correct info", async (ctx) => {
-		await execFile(
-			"node",
-			[
-				"../cli.js",
-				"build",
-				"--data",
-				"fixtures/data.yml",
-				"--template",
-				"fixtures/template.liquid",
-				"--output",
-				outputFile,
-			],
-			{ cwd: testDir },
-		);
-		await fs.access(outputFile);
-		ctx.assert.snapshot(await getPDFInfo(outputFile));
+	await it("creates valid PDF with correct text using default config", async (ctx) => {
+		const command = "build";
+		const type = "simple-input-default-config";
+
+		const cwd = path.join(testDir, "fixtures", command, type);
+		const output = path.join(cwd, "output.pdf");
+		await deleteFile(output);
+
+		await execFile("node", [cliFile, command], { cwd });
+
+		ctx.assert.snapshot(await getPDFText(output));
 	});
 });
