@@ -1,2 +1,25 @@
-title: The Document Title
-subtitle: From YAML
+title: Document Title
+subtitle: This is a test document for testing PDF Made Easy.
+style:
+  font:
+    name: Funnel Display
+    link: https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&display=swap
+    sizes:
+      mainHeading: 40
+      subHeadings: 32
+      paragraphs: 24
+  # Use high-contrast colors to prevent anti-aliasing and color blending from
+  # affecting the output PDF's colors.
+  colors:
+    headings: "#212529"
+    paragraphs: "#495057"
+    links: "#3c096c"
+image:
+  photographer:
+    name: Sixteen Miles Out
+    link: https://unsplash.com/@sixteenmilesout
+  from:
+    name: Unsplash
+    link: https://unsplash.com/photos/a-white-candle-in-a-glass-jar-2QSsfflO51I
+  link: https://images.unsplash.com/photo-1757688525739-8d1e13daf44f?w=340&h=510&fm=jpg
+  alt: A white candle in a glass jar

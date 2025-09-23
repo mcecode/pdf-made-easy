@@ -6,10 +6,7 @@ import util from "node:util";
 import { before, describe, it } from "node:test";
 
 import { defineConfig } from "../index.js";
-
-const testDir = import.meta.dirname;
-const outputFile = path.join(testDir, "fixtures", "output.pdf");
-const execFile = util.promisify(cp.execFile);
+import { getPDFInfo } from "./helper.js";
 
 await describe("defineConfig", async () => {
 	await it("throws when config is not an object", () => {
@@ -49,6 +46,10 @@ await describe("defineConfig", async () => {
 	});
 });
 
+const testDir = import.meta.dirname;
+const outputFile = path.join(testDir, "fixtures", "output.pdf");
+const execFile = util.promisify(cp.execFile);
+
 await describe("cli.js", async () => {
 	before(async () => {
 		try {
@@ -63,7 +64,7 @@ await describe("cli.js", async () => {
 		}
 	});
 
-	await it("creates the PDF file", async () => {
+	await it("creates valid PDF file with correct info", async (ctx) => {
 		await execFile(
 			"node",
 			[
@@ -79,5 +80,6 @@ await describe("cli.js", async () => {
 			{ cwd: testDir },
 		);
 		await fs.access(outputFile);
+		ctx.assert.snapshot(await getPDFInfo(outputFile));
 	});
 });

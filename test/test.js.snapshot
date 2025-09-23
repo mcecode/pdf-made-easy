@@ -1,0 +1,62 @@
+exports[`cli.js > creates valid PDF file with correct info 1`] = `
+{
+  "contents": [
+    {
+      "color": "#212529",
+      "font": "AAAAAA+FunnelDisplay-Light",
+      "size": 40,
+      "text": "Document Title",
+      "type": "TEXT"
+    },
+    {
+      "color": "#495057",
+      "font": "BAAAAA+FunnelDisplay-Light",
+      "size": 24,
+      "text": "This is a test document for testing PDF Made Easy.",
+      "type": "TEXT"
+    },
+    {
+      "color": "#212529",
+      "font": "CAAAAA+FunnelDisplay-Light",
+      "size": 32,
+      "text": "Photo by ",
+      "type": "TEXT"
+    },
+    {
+      "color": "#3c096c",
+      "font": "CAAAAA+FunnelDisplay-Light",
+      "size": 32,
+      "text": "Sixteen Miles Out",
+      "type": "LINK",
+      "url": "https://unsplash.com/@sixteenmilesout"
+    },
+    {
+      "color": "#212529",
+      "font": "CAAAAA+FunnelDisplay-Light",
+      "size": 32,
+      "text": " on ",
+      "type": "TEXT"
+    },
+    {
+      "color": "#3c096c",
+      "font": "CAAAAA+FunnelDisplay-Light",
+      "size": 32,
+      "text": "Unsplash",
+      "type": "LINK",
+      "url": "https://unsplash.com/photos/a-white-candle-in-a-glass-jar-2QSsfflO51I"
+    },
+    {
+      "height": 510,
+      "kind": "RGB_24BPP",
+      "length": 520200,
+      "type": "IMAGE",
+      "width": 340
+    }
+  ],
+  "metadata": {
+    "language": "en",
+    "length": 48152,
+    "title": "Document Title"
+  }
+}
+`;

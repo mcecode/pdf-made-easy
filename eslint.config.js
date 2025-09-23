@@ -117,6 +117,7 @@ export default defineConfig([
 
 			// Unicorn
 			"unicorn/import-style": "off",
+			"unicorn/no-await-expression-member": "off",
 			"unicorn/prevent-abbreviations": "off",
 			// I actually want the opposite, always use `utf-8`.
 			"unicorn/text-encoding-identifier-case": "off",
