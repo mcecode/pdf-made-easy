@@ -3,13 +3,13 @@ import fs from "node:fs/promises";
 import { getDocument, ImageKind, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 /**
- * If it exists, deletes the file in `path`.
+ * If it exists, deletes the file in `path`, else it does nothing.
  *
  * @param {string} path
  *
  * @returns {Promise<void>}
  */
-export async function deleteFile(path) {
+export async function deleteFileIfExists(path) {
 	try {
 		await fs.rm(path);
 	} catch (error) {
@@ -194,4 +194,20 @@ export async function getPDFText(path) {
 	await loadingTask.destroy();
 
 	return text;
+}
+
+/**
+ * Delays for the specified amount of time in `duration` in milliseconds.
+ *
+ * @param {number} duration
+ *
+ * @returns {Promise<void>}
+ */
+export async function sleep(duration) {
+	// This is the most straightforward way to create a promisified delay
+	// function.
+	// eslint-disable-next-line promise/avoid-new
+	return new Promise((resolve) => {
+		setTimeout(resolve, duration);
+	});
 }

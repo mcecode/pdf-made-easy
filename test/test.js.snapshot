@@ -68,3 +68,15 @@ exports[`cli.js > creates PDF with correct text using simple input, custom files
 exports[`cli.js > creates PDF with correct text using simple input, default files, default config 1`] = `
 "Document Title\\nLocation: about:blank\\nCurrent Page: 1\\nTotal Pages: 1"
 `;
+
+exports[`cli.js > updates PDF with correct text using simple input, default files, no config 1`] = `
+"Document Title"
+`;
+
+exports[`cli.js > updates PDF with correct text using simple input, default files, no config 2`] = `
+"Changed Document Title"
+`;
+
+exports[`cli.js > updates PDF with correct text using simple input, default files, no config 3`] = `
+"Document Title"
+`;

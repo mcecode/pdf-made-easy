@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import cp from "node:child_process";
+import fs from "node:fs/promises";
 import path from "node:path";
 import util from "node:util";
 import { describe, it } from "node:test";
 
 import { defineConfig } from "../index.js";
-import { deleteFile, getPDFInfo, getPDFText } from "./helper.js";
+import { deleteFileIfExists, getPDFInfo, getPDFText, sleep } from "./helper.js";
 
 await describe("defineConfig", async () => {
 	await it("throws when config is not an object", () => {
@@ -84,31 +85,81 @@ await describe("cli.js", async () => {
 			it(`creates ${c.expects} using ${c.case}`, async (ctx) => {
 				const cwd = path.join(testDir, "fixtures", "build", c.fixture);
 
-				const output = path.join(
+				const outputFile = path.join(
 					cwd,
 					c.useCustomFiles ? "custom.pdf" : "output.pdf",
 				);
-				await deleteFile(output);
+				// Delete output PDF from previous run to make sure the PDF being tested
+				// is from the current run.
+				await deleteFileIfExists(outputFile);
 
-				const args = [cliFile, "build"];
+				const nodeArgs = [cliFile, "build"];
 				if (c.useCustomFiles) {
-					args.push(
+					nodeArgs.push(
 						"--data",
 						"custom.yml",
 						"-o",
-						output,
+						outputFile,
 						"--template",
 						"custom.liquid",
 					);
 				}
 				if (c.useConfig && c.useCustomFiles) {
-					args.push("-c", "custom.js");
+					nodeArgs.push("-c", "custom.js");
 				}
 
-				await execFile("node", args, { cwd });
+				await execFile("node", nodeArgs, { cwd });
 
-				ctx.assert.snapshot(await c.snapshot(output));
+				ctx.assert.snapshot(await c.snapshot(outputFile));
 			}),
 		),
 	);
+
+	await it("updates PDF with correct text using simple input, default files, no config", async (ctx) => {
+		const DURATION_TO_WAIT_FOR_PDF_TO_UPDATE = 1000;
+
+		const cwd = path.join(testDir, "fixtures", "dev");
+
+		const outputFile = path.join(cwd, "output.pdf");
+		// Delete output PDF from previous run to make sure the PDF being tested is
+		// from the current run.
+		await deleteFileIfExists(outputFile);
+
+		const dataFile = path.join(cwd, "data.yml");
+		const dataContents = await fs.readFile(dataFile, "utf-8");
+
+		const controller = new AbortController();
+		// Execute CLI in a separete context so its termination doesn't cause test
+		// failure.
+		void (async () => {
+			try {
+				await execFile("node", [cliFile], { cwd, signal: controller.signal });
+			} catch (error) {
+				// Being aborted means `SIGTERM` was sent to the CLI, which is one way
+				// the CLI expects to be terminated.
+				if (error instanceof Error && error.name === "AbortError") {
+					return;
+				}
+
+				throw error;
+			}
+		})();
+
+		// Initial PDF generation
+		await sleep(DURATION_TO_WAIT_FOR_PDF_TO_UPDATE);
+		ctx.assert.snapshot(await getPDFText(outputFile));
+
+		// Update PDF contents
+		await fs.writeFile(dataFile, "title: Changed Document Title\n", "utf-8");
+		await sleep(DURATION_TO_WAIT_FOR_PDF_TO_UPDATE);
+		ctx.assert.snapshot(await getPDFText(outputFile));
+
+		// Reset data file
+		await fs.writeFile(dataFile, dataContents, "utf-8");
+		await sleep(DURATION_TO_WAIT_FOR_PDF_TO_UPDATE);
+		ctx.assert.snapshot(await getPDFText(outputFile));
+
+		// Terminate CLI
+		controller.abort();
+	});
 });

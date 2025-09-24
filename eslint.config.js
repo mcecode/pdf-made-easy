@@ -57,6 +57,7 @@ export default defineConfig([
 			"no-ternary": "off",
 			"no-undefined": "off",
 			"no-unexpected-multiline": "error",
+			"no-void": ["error", { allowAsStatement: true }],
 			"no-warning-comments": "off",
 			"one-var": ["error", "never"],
 			"prefer-template": "off",
