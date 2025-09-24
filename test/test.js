@@ -49,30 +49,66 @@ const testDir = import.meta.dirname;
 const cliFile = path.join(path.dirname(testDir), "cli.js");
 const execFile = util.promisify(cp.execFile);
 
+const buildCases = [
+	{
+		case: "complex input, default files, no config",
+		expects: "PDF with correct info",
+		fixture: "complex-input",
+		snapshot: getPDFInfo,
+		useConfig: false,
+		useCustomFiles: false,
+	},
+	{
+		case: "simple input, default files, default config",
+		expects: "PDF with correct text",
+		fixture: "default-config",
+		snapshot: getPDFText,
+		useConfig: true,
+		useCustomFiles: false,
+	},
+	{
+		case: "simple input, custom files, custom config",
+		expects: "PDF with correct text",
+		fixture: "custom-files",
+		snapshot: getPDFText,
+		useConfig: true,
+		useCustomFiles: true,
+	},
+];
+
+// These tests only check that the inputs given are reflected in the generated
+// PDFs since Puppeteer is already expected to generate valid PDFs.
 await describe("cli.js", async () => {
-	await it("creates valid PDF file with correct info using no config", async (ctx) => {
-		const command = "build";
-		const type = "complex-input-no-config";
+	await Promise.allSettled(
+		buildCases.map(async (c) =>
+			it(`creates ${c.expects} using ${c.case}`, async (ctx) => {
+				const cwd = path.join(testDir, "fixtures", "build", c.fixture);
 
-		const cwd = path.join(testDir, "fixtures", command, type);
-		const output = path.join(cwd, "output.pdf");
-		await deleteFile(output);
+				const output = path.join(
+					cwd,
+					c.useCustomFiles ? "custom.pdf" : "output.pdf",
+				);
+				await deleteFile(output);
 
-		await execFile("node", [cliFile, command], { cwd });
+				const args = [cliFile, "build"];
+				if (c.useCustomFiles) {
+					args.push(
+						"--data",
+						"custom.yml",
+						"-o",
+						output,
+						"--template",
+						"custom.liquid",
+					);
+				}
+				if (c.useConfig && c.useCustomFiles) {
+					args.push("-c", "custom.js");
+				}
 
-		ctx.assert.snapshot(await getPDFInfo(output));
-	});
+				await execFile("node", args, { cwd });
 
-	await it("creates valid PDF with correct text using default config", async (ctx) => {
-		const command = "build";
-		const type = "simple-input-default-config";
-
-		const cwd = path.join(testDir, "fixtures", command, type);
-		const output = path.join(cwd, "output.pdf");
-		await deleteFile(output);
-
-		await execFile("node", [cliFile, command], { cwd });
-
-		ctx.assert.snapshot(await getPDFText(output));
-	});
+				ctx.assert.snapshot(await c.snapshot(output));
+			}),
+		),
+	);
 });

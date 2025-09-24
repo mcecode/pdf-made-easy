@@ -1,4 +1,4 @@
-exports[`cli.js > creates valid PDF file with correct info using no config 1`] = `
+exports[`cli.js > creates PDF with correct info using complex input, default files, no config 1`] = `
 {
   "contents": [
     {
@@ -61,6 +61,10 @@ exports[`cli.js > creates valid PDF file with correct info using no config 1`] =
 }
 `;
 
-exports[`cli.js > creates valid PDF with correct text using default config 1`] = `
+exports[`cli.js > creates PDF with correct text using simple input, custom files, custom config 1`] = `
+"Document Title\\nLocation: about:blank\\nCurrent Page: 1\\nTotal Pages: 1"
+`;
+
+exports[`cli.js > creates PDF with correct text using simple input, default files, default config 1`] = `
 "Document Title\\nLocation: about:blank\\nCurrent Page: 1\\nTotal Pages: 1"
 `;
