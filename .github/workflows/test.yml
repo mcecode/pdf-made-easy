@@ -12,7 +12,7 @@ env:
 
 jobs:
   test:
-    name: Test on ${{ RUNNER_OS }} using Node.js v${{ matrix.node }}
+    name: Test on ${{ matrix.os }} using Node.js v${{ matrix.node }}
     continue-on-error: true
     strategy:
       matrix:
