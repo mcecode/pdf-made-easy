@@ -1,3 +1,5 @@
+// `require` is used to test that PME also works with CommonJS.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { defineConfig } = require("../../../../index.js");
 
 module.exports = defineConfig({

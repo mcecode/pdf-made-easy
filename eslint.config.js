@@ -19,7 +19,7 @@ export default defineConfig([
 	unicornPlugin.configs.all,
 	prettierConfig,
 	{
-		files: ["**/*.{js,ts}"],
+		files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
 		languageOptions: {
 			globals: globals.node,
 			parserOptions: {
@@ -125,7 +125,7 @@ export default defineConfig([
 		},
 	},
 	{
-		files: ["**/*.ts"],
+		files: ["**/*.{ts,mts,cts}"],
 		rules: {
 			// TypeScript
 			"@typescript-eslint/explicit-function-return-type": "error",
