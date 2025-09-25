@@ -9,6 +9,8 @@ on:
 env:
   # Installing Chrome is not required for linting files.
   PUPPETEER_SKIP_DOWNLOAD: true
+  # Output colored text
+  FORCE_COLOR: 1
 
 jobs:
   lint:
