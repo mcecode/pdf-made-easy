@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # Installing Chrome is not required for linting files.
+  PUPPETEER_SKIP_DOWNLOAD: true
+
 jobs:
   lint:
     name: Lint
