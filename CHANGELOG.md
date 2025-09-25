@@ -3,6 +3,12 @@
 This project adheres to the
 [Semantic Versioning 2.0 Specification](https://semver.org).
 
+## Unreleased
+
+### 🔧 Fixes
+
+- Fix failing to load config on Windows.
+
 ## 1.0.0 - September 16, 2025
 
 ### ⚠️ Breaking

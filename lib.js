@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import nodePath from "node:path";
+import url from "node:url";
 
 import chokidar from "chokidar";
 import { Liquid } from "liquidjs";
@@ -184,7 +185,7 @@ async function tryToImportConfig(path) {
 		/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 		/* eslint-disable @typescript-eslint/no-unsafe-return */
 
-		const mod = await import(path);
+		const mod = await import(url.pathToFileURL(path).toString());
 
 		if (Object.prototype.toString.call(mod?.default) !== "[object Object]") {
 			throw new TypeError("config's default export must be an object");
