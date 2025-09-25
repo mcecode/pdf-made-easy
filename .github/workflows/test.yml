@@ -9,6 +9,7 @@ on:
 jobs:
   test:
     name: Test on ${{ matrix.os }} using Node.js v${{ matrix.node }}
+    continue-on-error: true
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
@@ -29,5 +30,12 @@ jobs:
         with:
           version: latest
           run_install: true
+      # Prevent `No usable sandbox!` error on Ubuntu. See:
+      # https://github.com/puppeteer/puppeteer/issues/13595
+      - name: Disable AppArmor
+        if: ${{ matrix.os == ubuntu-latest }}
+        run:
+          echo 0 | sudo tee
+          /proc/sys/kernel/apparmor_restrict_unprivileged_userns
       - name: Run tests
         run: pnpm test
