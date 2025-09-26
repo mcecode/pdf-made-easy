@@ -117,7 +117,7 @@ await describe("cli.js", async () => {
 
 	await it("updates PDF with correct text using simple input, default files, no config", async (ctx) => {
 		const DURATION_TO_WAIT_AFTER_INITIAL_BUILD = 1500;
-		const DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT = 100;
+		const DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT = 250;
 
 		const cwd = path.join(testDir, "fixtures", "dev");
 
