@@ -24,16 +24,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: ${{ matrix.node }}
-          package-manager-cache: false
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
-          run_install: true
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Install Chrome
+        run: pnpm install-chrome-for-puppeteer
       # Prevent `No usable sandbox!` error on Ubuntu. See:
       # https://github.com/puppeteer/puppeteer/issues/13595
       - name: Disable AppArmor
@@ -41,7 +45,5 @@ jobs:
         run:
           echo 0 | sudo tee
           /proc/sys/kernel/apparmor_restrict_unprivileged_userns
-      - name: Install Chrome
-        run: pnpm install-chrome-for-puppeteer
       - name: Run tests
         run: pnpm test
