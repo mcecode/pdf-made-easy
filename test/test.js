@@ -116,7 +116,8 @@ await describe("cli.js", async () => {
 	);
 
 	await it("updates PDF with correct text using simple input, default files, no config", async (ctx) => {
-		const DURATION_TO_WAIT_FOR_PDF_TO_UPDATE = 1000;
+		const DURATION_TO_WAIT_AFTER_INITIAL_BUILD = 1500;
+		const DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT = 100;
 
 		const cwd = path.join(testDir, "fixtures", "dev");
 
@@ -146,18 +147,21 @@ await describe("cli.js", async () => {
 		})();
 
 		// Initial PDF generation
-		await sleep(DURATION_TO_WAIT_FOR_PDF_TO_UPDATE);
+		await sleep(DURATION_TO_WAIT_AFTER_INITIAL_BUILD);
 		ctx.assert.snapshot(await getPDFText(outputFile));
+		await sleep(DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT);
 
 		// Update PDF contents
 		await fs.writeFile(dataFile, "title: Changed Document Title\n", "utf-8");
-		await sleep(DURATION_TO_WAIT_FOR_PDF_TO_UPDATE);
+		await sleep(DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT);
 		ctx.assert.snapshot(await getPDFText(outputFile));
+		await sleep(DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT);
 
 		// Reset data file
 		await fs.writeFile(dataFile, dataContents, "utf-8");
-		await sleep(DURATION_TO_WAIT_FOR_PDF_TO_UPDATE);
+		await sleep(DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT);
 		ctx.assert.snapshot(await getPDFText(outputFile));
+		await sleep(DURATION_TO_WAIT_BEFORE_AND_AFTER_SNAPSHOT);
 
 		// Terminate CLI
 		controller.abort();
