@@ -42,6 +42,7 @@ jobs:
         run: pnpm lint
   test:
     name: Test on ${{ matrix.os }} using Node.js v${{ matrix.node }}
+    needs: lint
     continue-on-error: true
     strategy:
       matrix:
