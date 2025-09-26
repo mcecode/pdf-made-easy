@@ -1,3 +1,7 @@
 # Reduce risk of installing compromised packages by only installing packages
 # that are at least a day old.
 minimumReleaseAge: 1440
+
+# For ESLint, see note in:
+# https://eslint.org/docs/latest/use/getting-started#manual-set-up
+nodeLinker: hoisted
