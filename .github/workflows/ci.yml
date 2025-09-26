@@ -27,8 +27,17 @@ jobs:
         with:
           node-version: lts/*
           cache: pnpm
+      # Put Chrome installed by Puppeteer inside the pnpm store so it gets
+      # cached.
+      - name: Set PUPPETEER_CACHE_DIR
+        shell: bash
+        run: echo "PUPPETEER_CACHE_DIR=$(pnpm store path)" >> $GITHUB_ENV
       - name: Install dependencies
         run: pnpm install
+      # Install Chrome even if it's not needed for this job so it can be cached
+      # for other jobs.
+      - name: Install Chrome
+        run: pnpm install-chrome-for-puppeteer
       - name: Lint files
         run: pnpm lint
   test:
@@ -54,6 +63,11 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
+      # Put Chrome installed by Puppeteer inside the pnpm store so it gets
+      # cached.
+      - name: Set PUPPETEER_CACHE_DIR
+        shell: bash
+        run: echo "PUPPETEER_CACHE_DIR=$(pnpm store path)" >> $GITHUB_ENV
       - name: Install dependencies
         run: pnpm install
       - name: Install Chrome
