@@ -3,7 +3,7 @@
 This project adheres to the
 [Semantic Versioning 2.0 Specification](https://semver.org).
 
-## Unreleased
+## 1.0.1 - September 26, 2025
 
 ### 🔧 Fixes
 
