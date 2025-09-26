@@ -41,5 +41,7 @@ jobs:
         run:
           echo 0 | sudo tee
           /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+      - name: Install Chrome
+        run: pnpm install-chrome-for-puppeteer
       - name: Run tests
         run: pnpm test

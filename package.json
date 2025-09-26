@@ -38,7 +38,8 @@
 		"format": "prettier --write .",
 		"lint": "tsc && eslint && prettier --check .",
 		"test": "node --test --test-reporter spec test/test.js",
-		"test:update-snapshots": "node --test --test-reporter spec --test-update-snapshots test/test.js"
+		"test:update-snapshots": "node --test --test-reporter spec --test-update-snapshots test/test.js",
+		"install-chrome-for-puppeteer": "puppeteer browsers install chrome"
 	},
 	"dependencies": {
 		"chokidar": "^4.0.3",
