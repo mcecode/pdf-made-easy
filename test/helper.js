@@ -41,15 +41,13 @@ export async function getPDFInfo(path) {
 
 	// Get metadata
 
-	// @ts-expect-error - `contentLength` exists upon testing.
-	const { contentLength, info } = await document.getMetadata();
+	const { info } = await document.getMetadata();
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	const metadata = {
 		// @ts-expect-error - It should exist since it's set in the template
 		// fixtures using the `lang` property in the `html` element.
 		language: info.Language,
-		length: contentLength,
 		// @ts-expect-error - It should exist since it's set in the template
 		// fixtures using the `title` element.
 		title: info.Title,
@@ -85,7 +83,18 @@ export async function getPDFInfo(path) {
 		}
 
 		if (fn === OPS.setFont) {
+			// On Linux: `AAAAAA+FunnelDisplay-Light`
+			// On macOS: `AAAAAA+FunnelDisplay-Light_Bold`
+			// On Windows: `AAAAAA+Funnel-Display-Light-Light`
 			font = page.commonObjs.get(args[0]).name;
+			// Normalization for macOS
+			const underscoreIndex = font.indexOf("_");
+			if (underscoreIndex > 0) {
+				font = font.slice(0, underscoreIndex);
+			}
+			// Normalization for Windows
+			font = [...new Set(font.split("-"))].join("");
+
 			[, size] = args;
 			continue;
 		}
