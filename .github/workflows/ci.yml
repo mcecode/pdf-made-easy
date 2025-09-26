@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -7,10 +7,30 @@ on:
     branches: [main]
 
 env:
-  # Output colored text
+  # Always try to output colored text.
   FORCE_COLOR: 1
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Lint files
+        run: pnpm lint
   test:
     name: Test on ${{ matrix.os }} using Node.js v${{ matrix.node }}
     continue-on-error: true
