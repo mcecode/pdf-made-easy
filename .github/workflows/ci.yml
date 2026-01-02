@@ -16,14 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
-          run_install: false
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: lts/*
           cache: pnpm
@@ -49,18 +48,17 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
         # This should also include Node.js v20, but snapshot testing is only
         # available in Node.js v22.3 or later.
-        node: [22, 24]
+        node: [22, 24, 25]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
-          run_install: false
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
